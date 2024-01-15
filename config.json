@@ -1,0 +1,11 @@
+{
+    "cache": "/tmp",
+    "test": {
+        "localPath": "/home/wzcwzc0/test",
+        "remotePath": "http://127.0.0.1/test"
+    },
+    "helloworld":{
+        "localPath": "/home/wzcwzc0/helloworld",
+        "remotePath": "http://127.0.0.1/helloworld"
+    }
+}
