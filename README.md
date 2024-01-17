@@ -74,7 +74,7 @@ python3 pack.py FOLDER --updatescript AfterUpdate.sh BeforeUpdate.sh
 开发者可通过提供的Python文件通过命令上传包至OTA服务器，假设脚本为`update.py`
 
 ```bash
-python3 update.py XXX.pk
+python3 update.py XXX.tar.gz
 ```
 
 ### 4.更新包
