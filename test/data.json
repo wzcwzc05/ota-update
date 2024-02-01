@@ -1,0 +1,14 @@
+{
+  "packages": [
+    {
+      "name": "test",
+      "version": "1.0.0",
+      "branch": "x86-major",
+      "localPath": "/home/code801/test",
+      "remoteUrl": "http://127.0.0.1:8080"
+    },
+    {},
+    {}
+  ],
+  "UpdateType": "manual"
+}
