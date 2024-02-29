@@ -1,14 +1,15 @@
 {
-  "packages": [
-    {
-      "name": "test",
-      "version": "1.0.0",
-      "branch": "x86-major",
-      "localPath": "/home/code801/test",
-      "remoteUrl": "http://127.0.0.1:8080"
-    },
-    {},
-    {}
-  ],
-  "UpdateType": "manual"
+  "package": "test",
+  "description": "test package",
+  "version": "0.0.3",
+  "branch": "major",
+  "local": "./test",
+  "remote": "http://localhost:3000/",
+  "sha256": "c733d0d6fc33e8a34533d8358ee706c2b6c67be5beeaad6fab3c98dfb66537a7",
+  "BeforeUpdate": "",
+  "AfterUpdate": "",
+  "dependencies": {
+    "test": "0.0.1"
+  },
+  "restore": ""
 }

@@ -1,0 +1,16 @@
+{
+  "database": {
+    "host": "localhost",
+    "port": "3306",
+    "user": "root",
+    "password": "Wzcwzc050519!",
+    "database": "ota"
+  },
+  "flask":{
+    "host":"0.0.0.0",
+    "port":5000
+  },
+  "storage": {
+    "path": "..\\storage"
+  }
+}

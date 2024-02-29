@@ -19,36 +19,22 @@
 CREATE DATABASE IF NOT EXISTS `ota` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `ota`;
 
--- 导出  表 ota.otafiles 结构
-CREATE TABLE IF NOT EXISTS `otafiles` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `version` varchar(50) NOT NULL DEFAULT '0',
-  `branch` varchar(50) NOT NULL DEFAULT '0',
+-- 导出  表 ota.ota 结构
+DROP TABLE IF EXISTS `ota`;
+CREATE TABLE IF NOT EXISTS `ota` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `version` varchar(100) NOT NULL,
+  `branch` varchar(100) NOT NULL,
   `content` json NOT NULL,
-  `package` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-  `tag` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- 正在导出表  ota.otafiles 的数据：~2 rows (大约)
-DELETE FROM `otafiles`;
-INSERT INTO `otafiles` (`id`, `version`, `branch`, `content`, `package`, `tag`) VALUES
-	(1, '1.0.0', 'x86-major', '{}', 'test', 1),
-	(2, '1.0.1', 'x86-major', '{}', 'test', 0);
-
--- 导出  表 ota.package 结构
-CREATE TABLE IF NOT EXISTS `package` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `package` varchar(50) NOT NULL,
-  `branch` varchar(50) NOT NULL,
-  `version` varchar(50) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- 正在导出表  ota.package 的数据：~0 rows (大约)
-DELETE FROM `package`;
-INSERT INTO `package` (`id`, `package`, `branch`, `version`) VALUES
-	(1, 'test', 'release', '1.0.1');
+-- 正在导出表  ota.ota 的数据：~2 rows (大约)
+DELETE FROM `ota`;
+INSERT INTO `ota` (`id`, `name`, `version`, `branch`, `content`) VALUES
+	(3, 'test', '0.0.1', 'major', '{"local": "./test", "branch": "major", "remote": "http://localhost:3000/", "sha256": "c733d0d6fc33e8a34533d8358ee706c2b6c67be5beeaad6fab3c98dfb66537a7", "package": "test", "restore": "", "version": "0.0.1", "AfterUpdate": "", "description": "test package", "BeforeUpdate": "", "dependencies": {"test": "0.0.1"}}'),
+	(4, 'test', '0.0.2', 'major', '{"local": "./test", "branch": "major", "remote": "http://localhost:3000/", "sha256": "c733d0d6fc33e8a34533d8358ee706c2b6c67be5beeaad6fab3c98dfb66537a7", "package": "test", "restore": "", "version": "0.0.2", "AfterUpdate": "", "description": "test package", "BeforeUpdate": "", "dependencies": {"test": "0.0.1"}}');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
