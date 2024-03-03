@@ -4,7 +4,7 @@
   "version": "0.0.3",
   "branch": "major",
   "local": "./test",
-  "remote": "http://localhost:3000/",
+  "remote": "http://localhost:5000/",
   "sha256": "c733d0d6fc33e8a34533d8358ee706c2b6c67be5beeaad6fab3c98dfb66537a7",
   "BeforeUpdate": "",
   "AfterUpdate": "",

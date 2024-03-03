@@ -1,0 +1,13 @@
+{
+  "local": "./test",
+  "branch": "test",
+  "remote": "http://localhost:3000/",
+  "sha256": "c733d0d6fc33e8a34533d8358ee706c2b6c67be5beeaad6fab3c98dfb66537a7",
+  "package": "test",
+  "restore": "",
+  "version": "0.0.1",
+  "AfterUpdate": "",
+  "description": "test package",
+  "BeforeUpdate": "",
+  "dependencies": { "test": "0.0.1" }
+}

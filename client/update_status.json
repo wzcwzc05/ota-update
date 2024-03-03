@@ -1,0 +1,8 @@
+{
+    "update_status" : {
+        "status": "normal", 
+        "package": "",
+        "branch": "",
+        "stage": "BeforeUpdate"
+    }
+}
