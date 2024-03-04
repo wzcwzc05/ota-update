@@ -186,4 +186,3 @@ status正常返回200，`content.json`格式有误返回`400`，SHA256有误返�
 
 ## 三、图示
 
-<img src="https://picture-1304336638.cos.ap-nanjing.myqcloud.com/img/image-20240227200957899.png" alt="image-20240227200957899" style="zoom:67%;" />
