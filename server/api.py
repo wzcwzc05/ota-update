@@ -9,6 +9,7 @@ with open("config.json", "r") as f:
     config = json.loads(f.read())
 flask_host = config["flask"]["host"]
 flask_port = int(config["flask"]["port"])
+isDebug = bool(config["flask"]["debug"])
 storage_path = config["storage"]["path"]
 app = Flask(__name__)
 required_keys = ["sha256", "version", "branch", "package", "local",
@@ -139,4 +140,4 @@ def upload_file():  # 上传文件
 
 
 if (__name__ == "__main__"):
-    app.run(host=flask_host, port=flask_port, debug=True)
+    app.run(host=flask_host, port=flask_port, debug=isDebug)

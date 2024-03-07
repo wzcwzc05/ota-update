@@ -8,6 +8,7 @@
   "version": "0.0.1",
   "AfterUpdate": "",
   "description": "test package",
+  "updateInfo":"",
   "BeforeUpdate": "",
   "dependencies": { "test": "0.0.1" }
 }

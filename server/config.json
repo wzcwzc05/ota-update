@@ -6,9 +6,10 @@
     "password": "Wzcwzc050519!",
     "database": "ota"
   },
-  "flask":{
-    "host":"0.0.0.0",
-    "port":6000
+  "flask": {
+    "host": "0.0.0.0",
+    "port": 5500,
+    "debug": true
   },
   "storage": {
     "path": "..\\storage"

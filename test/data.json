@@ -9,7 +9,7 @@
   "BeforeUpdate": "",
   "AfterUpdate": "",
   "dependencies": {
-    "test": "0.0.1"
+    "test2": "0.0.1"
   },
   "restore": ""
 }
