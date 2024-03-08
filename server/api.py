@@ -71,8 +71,8 @@ def ota_files(filename):
 @app.route('/upload', methods=['PUT'])
 def upload_file():  # 上传文件
     dic = {"status": 200}
-    isForce = request.args.get("force") == "1"
-
+    isForce = request.args.get("overwrite") == "1"
+    print(request.files, request.form)
     # 检查是否有文件和JSON数据
     if 'file' not in request.files or 'content' not in request.form:
         dic["status"] = 400
@@ -84,6 +84,7 @@ def upload_file():  # 上传文件
     content_data = {}
     try:
         content_data = json.loads(content)
+        print(content_data)
         if (vM.checkContent(content_data) == False):
             dic["status"] = 400
             dic["error"] = "Json Content Error"
@@ -105,12 +106,12 @@ def upload_file():  # 上传文件
     if os.path.exists(file_path) and not isForce:
         dic["status"] = 409
         dic["error"] = "File exists"
-        dic["TIP"] = "If you want to force update, please add a query parameter 'force=1' to the URL"
+        dic["TIP"] = "If you want to force update, please add a query parameter 'overwrite=1' to the URL"
         return str(json.dumps(dic))
     if vM.checkVersion(name, branch, version) == True and not isForce:
         dic["status"] = 409
         dic["error"] = "Version exists"
-        dic["TIP"] = "If you want to force update, please add a query parameter 'force=1' to the URL"
+        dic["TIP"] = "If you want to force update, please add a query parameter 'overwrite=1' to the URL"
         return str(json.dumps(dic))
 
     if sha256_hash != expected_sha256:
