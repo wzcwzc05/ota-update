@@ -131,10 +131,14 @@ def upload_file():  # 上传文件
         if vM.writeinVersion(content_data) == False:
             dic["status"] = 409
             dic["error"] = "Write database Error"
+            # 删除文件
+            os.remove(file_path)
             return str(json.dumps(dic))
     except:
         dic["status"] = 500
         dic["error"] = "Write database Error"
+        # 删除文件
+        os.remove(file_path)
         return str(json.dumps(dic))
 
     return str(json.dumps(dic))

@@ -92,25 +92,35 @@ def zipDir(dirpath, outFullName):
 
 if __name__ == "__main__":
     is_overwrite = False
-    url = input(colored_output(Colors.OKBLUE,
-                "·Please input the url of the server (necessary): "))
+    with open("config.json", "r") as f:
+        config = json.loads(f.read())
+        url = config["url"]
+    print(colored_output(Colors.OKBLUE,
+                         "·Please input the url of the server (necessary): "))
+    print(colored_output(Colors.OKBLUE,
+                         "·default: "+url))
+    t = input()
+    if (t != ""):
+        url = t
     if not testUrl(url):
         print(colored_output(Colors.FAIL, "[Error] The url is not available"))
         os.system("pause")
         exit(0)
     else:
         print(colored_output(Colors.OKGREEN, "[Info] The url is available"))
+        with open("config.json", "w") as f:
+            f.write(json.dumps({"url": url}, indent=4))
 
     package = input(colored_output(
         Colors.OKBLUE, "·Please input the name of the package (necessary): "))
     branch = input(colored_output(
         Colors.OKBLUE, "·Please input the branch of the package (necessary): "))
-    local = input(colored_output(
-        Colors.OKBLUE, "·Please input local storage of the package (necessary): "))
     lastVersion = getLatestVersion(url, package, branch)
     if lastVersion is None:
         print(colored_output(Colors.WARNING,
               "[Warning] Get the latest version failed"))
+        local = input(colored_output(
+            Colors.OKBLUE, "·Please input local storage of the package (necessary): "))
         lastVersion = {
             "local": local,
             "branch": branch,
@@ -124,7 +134,6 @@ if __name__ == "__main__":
             "BeforeUpdate": "",
             "dependencies": {}
         }
-
     else:
         print(colored_output(Colors.OKGREEN,
               f"[Info] The latest version on server is {lastVersion['version']}"))
@@ -179,7 +188,7 @@ if __name__ == "__main__":
     print(colored_output(Colors.OKGREEN,
           "content.json has been generated according to the last version in the folder..."))
     print(colored_output(Colors.OKBLUE, "You can modify the content.json if you need"))
-    print(lastVersion)
+    os.system("start content.json")
     os.system("pause")
 
     try:

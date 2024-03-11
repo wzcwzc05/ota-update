@@ -82,3 +82,70 @@ def updateToDevice(id, packages: list, address: str) -> None:
         print("Failed to update " + id + " at " + address)
     db.close()
 
+
+def registerDevice(content: str, address: str) -> str:
+    db = pymysql.connect(host=db_host,
+                         user=db_user,
+                         password=db_password,
+                         database=db_database,
+                         port=db_port)
+    device_name = content["device"]
+    port = str(content["flask"]["port"])
+    device_url = "http://"+address+":"+port
+    cursor = db.cursor()
+    cursor.execute("SELECT id FROM devices WHERE address='%s'" % device_url)
+    results = cursor.fetchall()
+    print(results)
+    if (len(results) == 0):
+        cursor.execute(
+            "INSERT INTO devices (device, address, content) VALUES ('%s', '%s', '%s')" % (device_name, device_url, json.dumps(content)))
+        device_id = db.insert_id()
+        db.commit()
+        db.close()
+        return device_id
+    else:
+        db.close()
+        return results[0][0]
+
+
+def logoutDevice(id: str) -> bool:
+    db = pymysql.connect(host=db_host,
+                         user=db_user,
+                         password=db_password,
+                         database=db_database,
+                         port=db_port)
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM devices WHERE id='%s'" % id)
+    results = cursor.fetchall()
+    if (len(results) == 0):
+        db.close()
+        return False
+    else:
+        cursor.execute("DELETE FROM devices WHERE id='%s'" % id)
+        db.commit()
+        db.close()
+        return True
+
+
+def heartBeatDevice(id: str) -> bool:
+    db = pymysql.connect(host=db_host,
+                         user=db_user,
+                         password=db_password,
+                         database=db_database,
+                         port=db_port)
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM devices WHERE id='%s'" % id)
+    results = cursor.fetchall()
+    if (len(results) == 0):
+        db.close()
+        return False
+    else:
+        cursor.execute(
+            "UPDATE devices SET lastupdate=NOW() WHERE id='%s'" % id)
+        db.commit()
+        db.close()
+        return True
+
+
+if __name__ == "__main__":
+    pass
