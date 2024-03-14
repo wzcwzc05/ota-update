@@ -10,12 +10,78 @@ db_user = config["database"]['user']
 db_password = config["database"]["password"]
 db_database = config["database"]["database"]
 db_port = int(config["database"]["port"])
+updateStatus = {"device": 0, "package": {"package": "0",
+                                         "version": "0", "branch": "0"}, "status": "complete"}
+updateList = []
 
 
 def getPackages(content: dict) -> list:
-    packages = [()]
+    packages = []
+    try:
+        for item in content["packages"]:
+            temp = {}
+            temp["package"] = item["package"]
+            temp["version"] = item["version"]
+            temp["branch"] = item["branch"]
+            packages.append(temp)
+        return packages
+    except Exception as e:
+        print(e)
+        return None
 
-    return packages
+
+def deleteExpiredDevices():
+    db = pymysql.connect(host=db_host,
+                         user=db_user,
+                         password=db_password,
+                         database=db_database,
+                         port=db_port)
+    cursor = db.cursor()
+    cursor.execute(
+        "DELETE FROM devices WHERE lastupdate < DATE_SUB(NOW(), INTERVAL 2 MINUTE)")  # 1 minute
+    db.commit()
+    db.close()
+
+
+def getAllDevicesId():
+    try:
+        db = pymysql.connect(host=db_host,
+                             user=db_user,
+                             password=db_password,
+                             database=db_database,
+                             port=db_port)
+        cursor = db.cursor()
+        cursor.execute("SELECT id FROM devices")
+        results = cursor.fetchall()
+        lst = []
+        for row in results:
+            lst.append(row[0])
+        db.close()
+        return lst
+    except Exception as e:
+        print(e)
+        return None
+
+
+def getDeviceById(id: int) -> list:
+    try:
+        db = pymysql.connect(host=db_host,
+                             user=db_user,
+                             password=db_password,
+                             database=db_database,
+                             port=db_port)
+        cursor = db.cursor()
+        cursor.execute("SELECT content FROM devices WHERE id='%s'" % id)
+        results = cursor.fetchall()
+        if (len(results) == 0):
+            db.close()
+            return None
+        else:
+            db.close()
+            return getPackages(json.loads(results[0][0]))
+    except Exception as e:
+        print(e)
+        return None
 
 
 def updateFromDevice():
@@ -95,7 +161,6 @@ def registerDevice(content: str, address: str) -> str:
     cursor = db.cursor()
     cursor.execute("SELECT id FROM devices WHERE address='%s'" % device_url)
     results = cursor.fetchall()
-    print(results)
     if (len(results) == 0):
         cursor.execute(
             "INSERT INTO devices (device, address, content) VALUES ('%s', '%s', '%s')" % (device_name, device_url, json.dumps(content)))

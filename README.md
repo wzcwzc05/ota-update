@@ -20,6 +20,8 @@
 
 daemon程序
 
+依赖:`flask`、`requests`
+
 ### JSON配置文件
 
 由于单个设备的包较少，所以维护一个json文件
@@ -144,7 +146,7 @@ devices表：
 
 |地址|参数|返回值||
 |--|--|--|--|
-|`/getAllInfo`|无|-"status"<br/>-"content":所有设备的包的情况例子如下||
+|`/getAllInfo`|无|-"status"<br/>-"devices":所有设备的包的情况例子如下||
 
 ```json
 {
@@ -176,16 +178,78 @@ devices表：
 }
 
 ```
+|地址|参数|返回值||
+|--|--|--|--|
+|`/getDeviceInfo`|id=设备id|-"status"<br/>-"id":设备id<br/>-"packages":设备上所有的包||
+
+```json
+{
+      "id": 1,    // 设备id
+      "packages": [    // 设备上的所有的包，包含包名、包版本和包分支
+        {
+          "package": "test",
+          "version": "1.0.0",
+          "branch": "major"
+        },
+        ...
+      ]
+}
+```
+|地址|参数|返回值||
+|--|--|--|--|
+|`/getStatus`|无|-"status"<br/>-"update":升级状态||
+
+```json
+{
+  "update": {
+    "device": 1,	// 正在执行升级的设备id，若为0则代表没有任何任务在进行
+    "package": {	// 正在执行升级的包
+      "package": "test",
+      "version": "1.0.0",
+      "branch": "major"
+    },
+    "status": "Downloading"	// 升级状态
+  }
+}
+
+```
+
+升级状态分为：
+
+- BeforeUpdate：升级前准备
+- Downloading：下载包
+- Updating：替换中
+- AfterUpdate：升级后准备
+- Restore：重建现场
+
+| 地址             | 参数 | 返回值                                     |      |
+| ---------------- | ---- | ------------------------------------------ | ---- |
+| `/getUpdatelist` | 无   | -"status"<br/>-"list":注册服务中的更新队列 |      |
+
+获取更新队列
+```json
+{
+  "list": [
+    {
+      "id": 1,	// 设备id
+      "package": "test",	// 包名
+      "version": "1.0.1",	// 包版本
+      "branch": "major"	// 包分支
+    },
+    ...
+  ]
+}
+```
+
+
 
 ### 操作API接口
-
-升级场景内的设备与包
 
 |地址|内容类型|参数|返回值|
 |--|--|--|--|
 |`/update`|`Content-Type: multipart/form-data`|content : `update.json`<br/>|status|
 
-content的内容例子如下
+升级场景内的设备与包，content的内容例子如下
 
 ```json
 {
@@ -215,4 +279,24 @@ content的内容例子如下
     ...
   ]
 }
+```
+|地址|内容类型|参数|返回值|
+|--|--|--|--|
+|`/delFromlist`|`Content-Type: multipart/form-data`|content : `delete.json`<br/>|status|
+
+删除更新队列中的某些更新内容，`delete.json`的内容例子如下
+
+```json
+{
+  "items": [
+    {
+      "id": 1,	// 设备id
+      "package": "test",	// 包名
+      "version": "1.0.1",	// 包版本
+      "branch": "major"	// 包分支
+    },
+    ...
+  ]
+}
+
 ```

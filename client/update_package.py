@@ -51,7 +51,7 @@ class update_package:
             raise Exception(complete.stderr)
         else:
             self.log_handler.info(complete.stdout)
-
+    
     def Exerestore(self):
         if self.restore == "":
             return
