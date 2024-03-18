@@ -10,6 +10,8 @@ db_user = config["database"]['user']
 db_password = config["database"]["password"]
 db_database = config["database"]["database"]
 db_port = int(config["database"]["port"])
+global updateStatus
+global updateList
 updateStatus = {"device": 0, "package": {"package": "0",
                                          "version": "0", "branch": "0"}, "status": "complete"}
 updateList = []
@@ -210,6 +212,38 @@ def heartBeatDevice(id: str) -> bool:
         db.commit()
         db.close()
         return True
+
+
+def getAddress(id: int) -> str:
+    db = pymysql.connect(host=db_host,
+                         user=db_user,
+                         password=db_password,
+                         database=db_database,
+                         port=db_port)
+    cursor = db.cursor()
+    cursor.execute("SELECT address FROM devices WHERE id='%s'" % id)
+    results = cursor.fetchall()
+    if (len(results) == 0):
+        db.close()
+        return None
+    else:
+        db.close()
+        return results[0][0]
+
+
+def update(updatePackage: dict) -> dict:
+    id = updatePackage["id"]
+    packages = updatePackage["packages"]
+    branch = updatePackage["branch"]
+    version = updatePackage["version"]
+    address = getAddress(id)
+    if (address == None):
+        return {"status": "Failed", "device": id, "package": {
+            "package": packages, "version": version, "branch": branch}, "status": "Failed"
+        }
+    else:
+        updateToDevice(id, updatePackage, address)
+        return {"status": "Success", "device": id, "package": packages, "branch": branch, "version": version}
 
 
 if __name__ == "__main__":

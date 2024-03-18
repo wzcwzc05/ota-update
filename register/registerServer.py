@@ -1,7 +1,7 @@
 from flask import Flask, request, send_from_directory
 import json
+import logging
 import os
-import hashlib
 import deviceManager as dM
 
 config = {}
@@ -11,7 +11,31 @@ flask_host = config["flask"]["host"]
 flask_port = int(config["flask"]["port"])
 isDebug = bool(config["flask"]["debug"])
 storage_path = config["storage"]["path"]
+log_path = ".\\log\\"
+
 app = Flask(__name__)
+
+os.mkdir("log") if not os.path.exists("log") else None
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+
+def updateNext():
+    dM.updateList.pop(0)
+    if (len(dM.updateList) > 0):
+        updatePackage = dM.updateList[0]
+        status = dM.update(updatePackage)
+        if (status["status"] == "Failed"):
+            info = "Device:%s Package:%s Branch:%s Start Update Failed" % (
+                status["device"], status["package"], status["branch"], status["status"])
+            logger.error(info)
+            updateNext()
+    else:
+        info = "All Update Complete"
+        logger.info(info)
+        dM.updateStatus = {"device": 0, "package": {"package": "0",
+                                                    "version": "0", "branch": "0"}, "status": "complete"}
 
 
 @app.route("/test")
@@ -123,6 +147,27 @@ def delFromlist():
         for j in dM.updateList:
             if (i == j):
                 dM.updateList.remove(i)
+
+
+@app.route("/updateInfo", methods=["POST", "GET"])
+def updateInfo():
+    content = json.loads(request.form.get("content"))
+    if (content == None):
+        dic = {"status": 400, "error": "Bad Request"}
+        return str(json.dumps(dic))
+    update = content["update"]
+    if (update["status"] == "Failed"):
+        info = "Device:%s Package:%s Branch:%s Status:%s Failed" % (
+            update["device"], update["package"], update["branch"], update["status"])
+        logger.error(info)
+        updateNext()
+    elif (update["status"] == "Complete"):
+        info = "Device:%s Package:%s Branch:%s Status:%s Complete" % (
+            update["device"], update["package"], update["branch"], update["status"])
+        logger.info(info)
+        updateNext()
+    else:
+        dM.updateStatus = update
 
 
 if (__name__ == "__main__"):

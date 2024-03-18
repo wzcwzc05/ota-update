@@ -128,7 +128,7 @@ devices表：
 |status|JSON|设备状态|
 |lastupdate|TIMESTAMP|最后更新时间|
 
-### 注册API接口
+### 设备侧API接口
 
 接受从生产运行侧的注册和注销请求
 
@@ -139,6 +139,46 @@ devices表：
 |`/register`|`Content-Type: multipart/form-data`|content : `device.json`<br/>address : 设备管理地址|status|
 |`/logout`|`Content-Type: multipart/form-data`|id : 设备id|status|
 |`/heartbeat`|`Content-Type: multipart/form-data`|id : 设备id|status|
+
+接受从设备上的更新状态
+
+|地址|内容类型|参数|返回值|
+|--|--|--|--|
+|`/updateInfo`|`Content-Type: multipart/form-data`|content : `update.json`|status|
+
+`update.json`
+
+若是正常过程升级：
+
+```json
+{
+  "update": {
+    "device": 1,	// 正在执行升级的设备id，若为0则代表没有任何任务在进行
+    "package": {	// 正在执行升级的包
+      "package": "test",
+      "version": "1.0.0",
+      "branch": "major"
+    },
+    "status": "Downloading"	// 升级状态
+  }
+}
+```
+
+若是出现错误：
+
+```json
+{
+  "update": {
+    "device": 1,	// 正在执行升级的设备id，若为0则代表没有任何任务在进行
+    "package": {	// 正在执行升级的包
+      "package": "test",
+      "version": "1.0.0",
+      "branch": "major"
+    },
+    "status": "Failed"	// 升级状态
+  }
+}
+```
 
 ### 信息API接口
 
@@ -241,7 +281,11 @@ devices表：
 }
 ```
 
+| 地址            | 参数 | 返回值                                        |      |
+| --------------- | ---- | --------------------------------------------- | ---- |
+| `/getUpdatelog` | 无   | -"status"<br/>-"log":字符串当前升级队列的日志 |      |
 
+获取当前升级任务的日志
 
 ### 操作API接口
 
@@ -280,6 +324,7 @@ devices表：
   ]
 }
 ```
+若当前存在非空的升级队列`status`返回400
 |地址|内容类型|参数|返回值|
 |--|--|--|--|
 |`/delFromlist`|`Content-Type: multipart/form-data`|content : `delete.json`<br/>|status|
