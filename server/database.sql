@@ -16,7 +16,7 @@
 
 
 -- 导出 ota 的数据库结构
-CREATE DATABASE IF NOT EXISTS `ota` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+CREATE DATABASE IF NOT EXISTS `ota`;
 USE `ota`;
 
 -- 导出  表 ota.ota 结构
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS `ota` (
   `branch` varchar(100) NOT NULL,
   `content` json NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4;
 
 -- 正在导出表  ota.ota 的数据：~2 rows (大约)
 DELETE FROM `ota`;
