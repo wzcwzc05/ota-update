@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import deviceManager as dM
+import time
 
 config = {}
 with open("config.json", "r") as f:
@@ -19,11 +20,18 @@ os.mkdir("log") if not os.path.exists("log") else None
 formatter = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logfile_name = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())+"-http.log"
+file_handler = logging.FileHandler(os.path.join(log_path, logfile_name))
+console_handler = logging.StreamHandler()
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
+file_handler.setFormatter(formatter)
 
 
 def updateNext():
-    dM.updateList.pop(0)
     if (len(dM.updateList) > 0):
+        dM.updateList.pop(0)
         updatePackage = dM.updateList[0]
         status = dM.update(updatePackage)
         if (status["status"] == "Failed"):
@@ -48,7 +56,6 @@ def hello_world():
 def register():
     dM.deleteExpiredDevices()
     remote_ip = request.remote_addr
-    print(remote_ip)
     content = json.loads(request.form.get("content"))
     address = request.form.get("address")
     if (content == None or address == None):
@@ -63,13 +70,13 @@ def register():
 
 @app.route("/heartbeat", methods=["POST", "GET"])
 def heartbeat():
-    id = request.form.get("id")
-    if (id == None):
+    device_id = request.form.get("id")
+    if (device_id == None):
         dic = {"status": 400, "error": "Bad Request"}
         return str(json.dumps(dic))
     else:
         dic = {"status": 200}
-        if (dM.heartBeatDevice(id)):
+        if (dM.heartBeatDevice(device_id)):
             return str(json.dumps(dic))
         else:
             dic = {"status": 404, "error": "Device Not Found"}
@@ -151,6 +158,7 @@ def delFromlist():
 
 @app.route("/updateInfo", methods=["POST", "GET"])
 def updateInfo():
+    dic = {"status": 200}
     content = json.loads(request.form.get("content"))
     if (content == None):
         dic = {"status": 400, "error": "Bad Request"}
@@ -158,16 +166,41 @@ def updateInfo():
     update = content["update"]
     if (update["status"] == "Failed"):
         info = "Device:%s Package:%s Branch:%s Status:%s Failed" % (
-            update["device"], update["package"], update["branch"], update["status"])
+            update["device"], update["package"]["package"], update["package"]["branch"], update["status"])
         logger.error(info)
         updateNext()
-    elif (update["status"] == "Complete"):
+    elif (update["status"] == "Completed"):
         info = "Device:%s Package:%s Branch:%s Status:%s Complete" % (
-            update["device"], update["package"], update["branch"], update["status"])
+            update["device"], update["package"]["package"], update["package"]["branch"], update["status"])
         logger.info(info)
+        dM.updateStatus = update
         updateNext()
     else:
+        info = "Device:%s Package:%s Branch:%s Status:%s" % (
+            update["device"], update["package"]["package"], update["package"]["branch"], update["status"])
         dM.updateStatus = update
+    return str(json.dumps(dic))
+
+
+@app.route("/update", methods=["POST", "GET"])
+def update():
+    # with open("config.json", "r") as f:
+    #     config = json.loads(f.read())
+    # ota_server = config["ota_server"]
+    content = json.loads(request.form.get("content"))
+    dic = {"status": 200}
+    if (content == None):
+        dic = {"status": 400, "error": "Bad Request"}
+        return str(json.dumps(dic))
+    else:
+        updatelist: list = content["devices"]
+        for item in updatelist:
+            device_id = item["id"]
+            packlist = item["packages"]
+            for pack in packlist:
+                dM.updateList.append(
+                    {"id": device_id, "package": pack["package"], "branch": pack["branch"], "version": pack["version"]})
+        return str(json.dumps(dic))
 
 
 if (__name__ == "__main__"):

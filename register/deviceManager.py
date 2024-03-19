@@ -194,21 +194,21 @@ def logoutDevice(id: str) -> bool:
         return True
 
 
-def heartBeatDevice(id: str) -> bool:
+def heartBeatDevice(device_id: str) -> bool:
     db = pymysql.connect(host=db_host,
                          user=db_user,
                          password=db_password,
                          database=db_database,
                          port=db_port)
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM devices WHERE id='%s'" % id)
+    cursor.execute("SELECT * FROM devices WHERE id='%s'" % device_id)
     results = cursor.fetchall()
     if (len(results) == 0):
         db.close()
         return False
     else:
         cursor.execute(
-            "UPDATE devices SET lastupdate=NOW() WHERE id='%s'" % id)
+            "UPDATE devices SET lastupdate=NOW() WHERE id='%s'" % device_id)
         db.commit()
         db.close()
         return True

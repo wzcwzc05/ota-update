@@ -6,11 +6,12 @@ import sys
 import signal
 import os
 import time
+from update_package import update_package
+import requests
+from urllib.parse import urljoin
+import socket
 
 app = Flask(__name__)
-global updateQueue
-updateQueue = Queue()
-
 logger = logging.getLogger('http_server')
 log_name = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())+"-http.log"
 os.mkdir("log") if not os.path.exists("log") else None
@@ -28,20 +29,71 @@ logger.addHandler(console_log)
 
 
 def signal_handler(sig, frame):
+    process.terminate()
     sys.exit(0)
 
 
-@app.route("/startUpate", methods=["POST", "GET"])
+def get_local_ip():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+    finally:
+        s.close()
+    return str(ip)
+
+
+def heartbeat(addr: str, device_id: int):
+    while (True):
+        try:
+            url = urljoin(addr, "/heartbeat")
+            res = requests.post(url, data={"id": int(device_id)})
+            if (res.status_code == 200):
+                time.sleep(10)
+            else:
+                time.sleep(2)
+        except Exception as e:
+            logger.error(e)
+            time.sleep(10)
+
+
+def checkContent(content: dict) -> bool:
+    required_keys = ["sha256", "version", "branch", "package", "local",
+                     "remote", "BeforeUpdate", "AfterUpdate", "dependencies", "restore"]
+    for i in required_keys:
+        if i not in content:
+            return False
+    return True
+
+
+@app.route("/test", methods=["POST", "GET"])
+def test():
+    res = {"status": 200}
+    return str(json.dumps(res))
+
+
+@app.route("/", methods=["POST", "GET"])
+def main():
+    res = {"status": 200}
+    return str(json.dumps(res))
+
+
+@app.route("/startUpdate", methods=["POST", "GET"])
 def startUpdate():
     res = {"status": 200}
     try:
+        if (not updateQueue.empty()):
+            res["status"] = 400
+            res["error"] = "Queue not empty"
+            return str(json.dumps(res))
         dic = json.loads(request.form.get("content"))
-        if (dic["package"] == None or dic["version"] == None or dic["branch"] == None):
+        if (not checkContent(dic)):
             logger.error("Error Json Content")
             res["status"] = 400
             res["error"] = "Error Json Content"
             return str(json.dumps(res))
-        updateQueue.put(dic)
+        t = update_package(dic, register_path, device_id, None)
+        updateQueue.put(t)
         logger.info("Package:%s Branch:%s Version:%s Added into the Queue" % (
             str(dic["package"]), str(dic["branch"]), str(dic["version"])))
         return str(json.dumps(res))
@@ -51,6 +103,36 @@ def startUpdate():
         return str(json.dumps(res))
 
 
-def http_server(update_queue):
+def http_server(update_queue: Queue):
+    with open("device.json", "r") as f:
+        config = json.loads(f.read())
+    flask_host = config["flask"]["host"]
+    flask_port = int(config["flask"]["port"])
+    isDebug = bool(config["flask"]["debug"])
+    global updateQueue
+    global register_path
+    global device_id
+    register_path = config["registry"]
+    while (True):
+        try:
+            url = urljoin(register_path, "/register")
+            ip_addr = get_local_ip()
+            addr = "http://"+ip_addr+":"+str(flask_port)
+            res = requests.post(url, data={"content": str(
+                json.dumps(config)), "address": addr})
+            device_id = json.loads(res.text)["id"]
+            config["device_id"] = device_id
+            with open("device.json", "w") as f:
+                f.write(str(json.dumps(config)))
+            break
+        except Exception as e:
+            logger.error(e)
+            logger.error("Register Failed")
+            time.sleep(2)
     updateQueue = update_queue
+    global process
+    process = Process(target=heartbeat, args=(register_path, device_id))
+    process.daemon = True
+    process.start()
+    app.run(host=flask_host, port=flask_port, debug=isDebug)
     signal.signal(signal.SIGTERM, signal_handler)

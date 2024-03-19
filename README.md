@@ -300,11 +300,11 @@ devices表：
   "devices": [    // 一个列表，存储所有需要升级的设备
     {
       "id": 1,    // 设备id
-      "packages": [    // 需要升级的包的列表，包含包的名称,分支和版本。若版本为空自动升级为最新版本
+      "packages": [    // 需要升级的包的列表，包含包的名称,分支和版本
         {
           "package": "test",
           "branch": "major",
-          "version": ""
+          "version": "0.0.1"
         },
         ...
       ]

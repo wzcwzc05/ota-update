@@ -31,11 +31,35 @@ def update(update_queue):
     logger.addHandler(console_log)
 
     while (True):
-        print("update process start...")
         if (not update_queue.empty()):
-            package = update_queue.get()
+            package: update_package = update_queue.get()
             try:
-                package.startUpdate()
-            except Exception as e:
-                logger.INFO(name+" update error")
+                with open("device.json") as f:
+                    device = json.loads(f.read())
+                packlist = device["packages"]
+                for item in packlist:
+                    if (item["package"] == package.package_json["package"] and item["branch"] == package.package_json["branch"]):
+                        logger.info(
+                            package.package_json["package"]+" in device.json")
+                        break
+                else:
+                    logger.info(
+                        package.package_json["package"]+" not in device.json")
+                logger.info(package.package_json["package"]+" update start")
+                if (not package.startUpdate()):
+                    logger.info(
+                        package.package_json["package"]+" update failed")
+                    continue
+                logger.info(package.package_json["package"]+" update finished")
+                for i, item in enumerate(packlist):
+                    if (item["package"] == package.package_json["package"] and item["branch"] == package.package_json["branch"]):
+                        packlist[i] = package.package_json
+                        break
+                else:
+                    packlist.append(package.package_json)
+                device["packages"] = packlist
+                with open("device.json", "w") as f:
+                    f.write(json.dumps(device))
+            except BaseException as e:
+                logger.info(package.package_json["package"]+" update error")
         time.sleep(1)
