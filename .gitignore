@@ -161,3 +161,6 @@ cython_debug/
 #.idea/
 *.zip
 .VSCodeCounter
+hello.json
+test.json
+test.py

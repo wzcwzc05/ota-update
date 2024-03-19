@@ -28,6 +28,7 @@ class update_package:
         self.local_path = package_json["local"]
         temp = "ota-files/%s/%s/%s" % (
             package_json["package"], package_json["branch"], self.package_name)
+
         self.remote_path = urljoin(
             package_json["remote"], temp)
         temp = "/updateInfo"

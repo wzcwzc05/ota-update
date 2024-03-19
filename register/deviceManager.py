@@ -111,44 +111,24 @@ def updateFromDevice():
                       device + " at " + address)
         except Exception as e:
             print("Failed to get version from " + device + " at " + address)
-
-        try:
-            response = requests.get(urljoin(address, "/getStatus"))
-            data = json.loads(response.text)
-            if (data["status"] == 200):
-                cursor.execute("UPDATE devices SET status='%s' WHERE address='%s'" % (
-                    data["status"], address))
-                db.commit()
-            else:
-                print("Failed to get status from " + device + " at " + address)
-        except Exception as e:
-            print("Failed to get status from " + device + " at " + address)
+            
     db.close()
 
 
-def updateToDevice(id, packages: list, address: str) -> None:
-    db = pymysql.connect(host=db_host,
-                         user=db_user,
-                         password=db_password,
-                         database=db_database,
-                         port=db_port)
-    cursor = db.cursor()
-    post_url = urljoin(address, "/update")
+def updateToDevice(id, packages: dict, address: str) -> None:
+    post_url = urljoin(address, "/startUpdate")
     data = {
-        "packages": packages
+        "content": str(json.dumps(packages))
     }
     try:
         response = requests.post(post_url, data)
         data = json.loads(response.text)
         if (data["status"] == 200):
-            cursor.execute("UPDATE devices SET status='%s' WHERE id='%s'" % (
-                data["status"], id))
-            db.commit()
+            return True
         else:
-            print("Failed to update " + id + " at " + address)
+            return False
     except Exception as e:
-        print("Failed to update " + id + " at " + address)
-    db.close()
+        return False
 
 
 def registerDevice(content: str, address: str) -> str:
@@ -158,19 +138,19 @@ def registerDevice(content: str, address: str) -> str:
                          database=db_database,
                          port=db_port)
     device_name = content["device"]
-    port = str(content["flask"]["port"])
-    device_url = "http://"+address+":"+port
     cursor = db.cursor()
-    cursor.execute("SELECT id FROM devices WHERE address='%s'" % device_url)
+    cursor.execute("SELECT id FROM devices WHERE address='%s'" % address)
     results = cursor.fetchall()
     if (len(results) == 0):
         cursor.execute(
-            "INSERT INTO devices (device, address, content) VALUES ('%s', '%s', '%s')" % (device_name, device_url, json.dumps(content)))
+            "INSERT INTO devices (device, address, content) VALUES ('%s', '%s', '%s')" % (device_name, address, json.dumps(content)))
         device_id = db.insert_id()
         db.commit()
         db.close()
         return device_id
     else:
+        cursor.execute("UPDATE devices SET content='%s' WHERE address='%s'" % (
+            json.dumps(content), address))
         db.close()
         return results[0][0]
 
@@ -231,20 +211,34 @@ def getAddress(id: int) -> str:
         return results[0][0]
 
 
+def getPackage(package: str, branch: str, version: str) -> dict:
+    with open("config.json", "r") as f:
+        config = json.loads(f.read())
+    ota_server = config["ota_server"]
+    dic: dict = requests.get(urljoin(ota_server, "/getVersion?"+urlencode(
+        {"package": package, "branch": branch, "version": version}))).json()
+    if (dic["status"] == 200):
+        package_json = dic["list"][0]["content"]
+    else:
+        package_json = None
+    return package_json
+
+
 def update(updatePackage: dict) -> dict:
     id = updatePackage["id"]
-    packages = updatePackage["packages"]
+    package = updatePackage["package"]
     branch = updatePackage["branch"]
     version = updatePackage["version"]
     address = getAddress(id)
+    package_json = getPackage(package, branch, version)
     if (address == None):
-        return {"status": "Failed", "device": id, "package": {
-            "package": packages, "version": version, "branch": branch}, "status": "Failed"
-        }
+        return False
     else:
-        updateToDevice(id, updatePackage, address)
-        return {"status": "Success", "device": id, "package": packages, "branch": branch, "version": version}
+        if (updateToDevice(id, package_json, address)):
+            return True
+        else:
+            return False
 
 
 if __name__ == "__main__":
-    pass
+    updateFromDevice()

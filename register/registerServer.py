@@ -4,6 +4,7 @@ import logging
 import os
 import deviceManager as dM
 import time
+import multiprocessing
 
 config = {}
 with open("config.json", "r") as f:
@@ -31,19 +32,31 @@ file_handler.setFormatter(formatter)
 
 def updateNext():
     if (len(dM.updateList) > 0):
-        dM.updateList.pop(0)
         updatePackage = dM.updateList[0]
         status = dM.update(updatePackage)
-        if (status["status"] == "Failed"):
+        if (not status):
             info = "Device:%s Package:%s Branch:%s Start Update Failed" % (
-                status["device"], status["package"], status["branch"], status["status"])
+                updatePackage["id"], updatePackage["package"], updatePackage["branch"])
             logger.error(info)
+            dM.updateList.pop(0)
             updateNext()
+            return
+        dM.updateList.pop(0)
     else:
         info = "All Update Complete"
         logger.info(info)
         dM.updateStatus = {"device": 0, "package": {"package": "0",
                                                     "version": "0", "branch": "0"}, "status": "complete"}
+
+
+def updateDevice():
+    while (True):
+        try:
+            dM.updateFromDevice()
+            time.sleep(10)
+        except Exception as e:
+            logger.error(e)
+            time.sleep(5)
 
 
 @app.route("/test")
@@ -63,7 +76,7 @@ def register():
         return str(json.dumps(dic))
     else:
         dic = {"status": 200}
-        id = dM.registerDevice(content, remote_ip)
+        id = dM.registerDevice(content, address)
         dic["id"] = id
         return str(json.dumps(dic))
 
@@ -165,19 +178,23 @@ def updateInfo():
         return str(json.dumps(dic))
     update = content["update"]
     if (update["status"] == "Failed"):
+        dM.updateFromDevice()
         info = "Device:%s Package:%s Branch:%s Status:%s Failed" % (
             update["device"], update["package"]["package"], update["package"]["branch"], update["status"])
         logger.error(info)
         updateNext()
     elif (update["status"] == "Completed"):
-        info = "Device:%s Package:%s Branch:%s Status:%s Complete" % (
-            update["device"], update["package"]["package"], update["package"]["branch"], update["status"])
+        time.sleep(1)
+        dM.updateFromDevice()
+        info = "Device:%s Package:%s Branch:%s  Complete" % (
+            update["device"], update["package"]["package"], update["package"]["branch"])
         logger.info(info)
         dM.updateStatus = update
         updateNext()
     else:
         info = "Device:%s Package:%s Branch:%s Status:%s" % (
             update["device"], update["package"]["package"], update["package"]["branch"], update["status"])
+        logger.info(info)
         dM.updateStatus = update
     return str(json.dumps(dic))
 
@@ -200,8 +217,12 @@ def update():
             for pack in packlist:
                 dM.updateList.append(
                     {"id": device_id, "package": pack["package"], "branch": pack["branch"], "version": pack["version"]})
+        updateNext()
         return str(json.dumps(dic))
 
 
 if (__name__ == "__main__"):
+    process = multiprocessing.Process(target=updateDevice)
+    process.daemon = True
+    process.start()
     app.run(host=flask_host, port=flask_port, debug=isDebug)

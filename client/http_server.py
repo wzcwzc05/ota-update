@@ -53,6 +53,7 @@ def heartbeat(addr: str, device_id: int):
             else:
                 time.sleep(2)
         except Exception as e:
+            logger.error("Heartbeat Failed")
             logger.error(e)
             time.sleep(10)
 
@@ -87,6 +88,7 @@ def startUpdate():
             res["error"] = "Queue not empty"
             return str(json.dumps(res))
         dic = json.loads(request.form.get("content"))
+        dic = json.loads(dic)
         if (not checkContent(dic)):
             logger.error("Error Json Content")
             res["status"] = 400
@@ -101,6 +103,14 @@ def startUpdate():
         logger.error(e)
         res["status"] = 400
         return str(json.dumps(res))
+
+
+@app.route("/getInfo", methods=["POST", "GET"])
+def getInfo():
+    res = {"status": 200}
+    with open("device.json", "r") as f:
+        res["content"] = f.read()
+    return str(json.dumps(res))
 
 
 def http_server(update_queue: Queue):
@@ -134,5 +144,7 @@ def http_server(update_queue: Queue):
     process = Process(target=heartbeat, args=(register_path, device_id))
     process.daemon = True
     process.start()
+    app.logger.addHandler(file_log)
+    app.logger.addHandler(console_log)
     app.run(host=flask_host, port=flask_port, debug=isDebug)
     signal.signal(signal.SIGTERM, signal_handler)
