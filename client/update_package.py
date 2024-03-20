@@ -10,6 +10,7 @@ logger = logging.getLogger("update_package")
 logger.setLevel(logging.INFO)
 formatter = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+os.mkdir("log") if not os.path.exists("log") else None
 file_handler = logging.FileHandler("log/update.log")
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
@@ -21,6 +22,8 @@ class update_package:
             self.log_handler = logger
         else:
             self.log_handler = log_handler
+        os.mkdir("tmp") if not os.path.exists("tmp") else None
+        os.mkdir("log") if not os.path.exists("log") else None
         self.package_json = package_json
         self.device_id = device_id
         self.package_name = "%s-%s-%s.zip" % (

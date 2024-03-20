@@ -45,3 +45,4 @@ if (__name__ == "__main__"):
             logger.error("update process dead")
             server_process.terminate()
             exit(0)
+        time.sleep(1)

@@ -107,11 +107,13 @@ def updateFromDevice():
                     data["content"], address))
                 db.commit()
             else:
+                deleteExpiredDevices()
                 print("Failed to get content.json from " +
                       device + " at " + address)
         except Exception as e:
+            deleteExpiredDevices()
             print("Failed to get version from " + device + " at " + address)
-            
+
     db.close()
 
 

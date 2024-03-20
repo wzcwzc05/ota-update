@@ -94,7 +94,10 @@ if __name__ == "__main__":
     is_overwrite = False
     with open("config.json", "r") as f:
         config = json.loads(f.read())
-        url = config["url"]
+        if (config.get("url") != None):
+            url = config["url"]
+        else:
+            url = ""
     print(colored_output(Colors.OKBLUE,
                          "·Please input the url of the server (necessary): "))
     print(colored_output(Colors.OKBLUE,
@@ -183,8 +186,10 @@ if __name__ == "__main__":
         exit(0)
 
     lastVersion["version"] = newVersion
+    lastVersion["remote"] = url
     with open("content.json", "w") as f:
         f.write(json.dumps(lastVersion, indent=4))
+    f.close()
     print(colored_output(Colors.OKGREEN,
           "content.json has been generated according to the last version in the folder..."))
     print(colored_output(Colors.OKBLUE, "You can modify the content.json if you need"))
@@ -210,7 +215,9 @@ if __name__ == "__main__":
 
         if is_overwrite:
             post_url += "?overwrite=1"
-
+        with open("content.json", "r") as f:
+            lastVersion = json.loads(f.read())
+        f.close()
         with open(f"{package}-{branch}-{newVersion}.zip", "rb") as file:
             files = {"file": file}
             response = requests.put(post_url, files=files, data={
