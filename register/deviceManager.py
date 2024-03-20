@@ -13,11 +13,11 @@ db_port = int(config["database"]["port"])
 global updateStatus
 global updateList
 updateStatus = {"device": 0, "package": {"package": "0",
-                                         "version": "0", "branch": "0"}, "status": "complete"}
-updateList = []
+                                         "version": "0", "branch": "0"}, "status": "complete"}  # 更新状态
+updateList = [] # 更新队列
 
 
-def getPackages(content: dict) -> list:
+def getPackages(content: dict) -> list: # 解析device.json,输出包列表
     packages = []
     try:
         for item in content["packages"]:
@@ -32,7 +32,7 @@ def getPackages(content: dict) -> list:
         return None
 
 
-def deleteExpiredDevices():
+def deleteExpiredDevices(): # 删除过期设备
     db = pymysql.connect(host=db_host,
                          user=db_user,
                          password=db_password,
@@ -45,7 +45,7 @@ def deleteExpiredDevices():
     db.close()
 
 
-def getAllDevicesId():
+def getAllDevicesId():  # 获取所有设备id
     try:
         db = pymysql.connect(host=db_host,
                              user=db_user,
@@ -65,7 +65,7 @@ def getAllDevicesId():
         return None
 
 
-def getDeviceById(id: int) -> list:
+def getDeviceById(id: int) -> list: # 通过id获取设备包列表
     try:
         db = pymysql.connect(host=db_host,
                              user=db_user,
@@ -86,7 +86,7 @@ def getDeviceById(id: int) -> list:
         return None
 
 
-def updateFromDevice():
+def updateFromDevice(): # 从设备获取信息
     db = pymysql.connect(host=db_host,
                          user=db_user,
                          password=db_password,
@@ -117,7 +117,7 @@ def updateFromDevice():
     db.close()
 
 
-def updateToDevice(id, packages: dict, address: str) -> None:
+def updateToDevice(id, packages: dict, address: str) -> None:   # 更新设备某个包
     post_url = urljoin(address, "/startUpdate")
     data = {
         "content": str(json.dumps(packages))
@@ -133,7 +133,7 @@ def updateToDevice(id, packages: dict, address: str) -> None:
         return False
 
 
-def registerDevice(content: str, address: str) -> str:
+def registerDevice(content: str, address: str) -> str:  # 注册设备
     db = pymysql.connect(host=db_host,
                          user=db_user,
                          password=db_password,
@@ -159,7 +159,7 @@ def registerDevice(content: str, address: str) -> str:
         return results[0][0]
 
 
-def logoutDevice(id: str) -> bool:
+def logoutDevice(id: str) -> bool:  # 注销设备
     db = pymysql.connect(host=db_host,
                          user=db_user,
                          password=db_password,
@@ -178,7 +178,7 @@ def logoutDevice(id: str) -> bool:
         return True
 
 
-def heartBeatDevice(device_id: str) -> bool:
+def heartBeatDevice(device_id: str) -> bool:    # 心跳
     db = pymysql.connect(host=db_host,
                          user=db_user,
                          password=db_password,
@@ -198,7 +198,7 @@ def heartBeatDevice(device_id: str) -> bool:
         return True
 
 
-def getAddress(id: int) -> str:
+def getAddress(id: int) -> str: # 通过id获取地址
     db = pymysql.connect(host=db_host,
                          user=db_user,
                          password=db_password,
@@ -215,7 +215,7 @@ def getAddress(id: int) -> str:
         return results[0][0]
 
 
-def getPackage(package: str, branch: str, version: str) -> dict:
+def getPackage(package: str, branch: str, version: str) -> dict:    # 从ota服务器获取包信息
     with open("config.json", "r") as f:
         config = json.loads(f.read())
     ota_server = config["ota_server"]
@@ -231,19 +231,19 @@ def getPackage(package: str, branch: str, version: str) -> dict:
         return None
 
 
-def update(updatePackage: dict) -> dict:
+def update(updatePackage: dict) -> dict:    # 更新设备
     id = updatePackage["id"]
     package = updatePackage["package"]
     branch = updatePackage["branch"]
     version = updatePackage["version"]
-    address = getAddress(id)
-    package_json = getPackage(package, branch, version)
+    address = getAddress(id)    # 获取地址
+    package_json = getPackage(package, branch, version) # 获取更新包content.json
     if (package_json == None):
         return False
     if (address == None):
         return False
     else:
-        if (updateToDevice(id, package_json, address)):
+        if (updateToDevice(id, package_json, address)): # 更新设备
             return True
         else:
             return False

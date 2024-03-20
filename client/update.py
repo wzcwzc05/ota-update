@@ -31,8 +31,8 @@ def update(update_queue):
     logger.addHandler(console_log)
 
     while (True):
-        if (not update_queue.empty()):
-            package: update_package = update_queue.get()
+        if (not update_queue.empty()):  # 如果队列不为空
+            package: update_package = update_queue.get()    # 从队列中获取一个更新包
             try:
                 with open("device.json") as f:
                     device = json.loads(f.read())
@@ -40,11 +40,11 @@ def update(update_queue):
                 for item in packlist:
                     if (item["package"] == package.package_json["package"] and item["branch"] == package.package_json["branch"]):
                         logger.info(
-                            package.package_json["package"]+" in device.json")
+                            package.package_json["package"]+" in device.json")  # 如果设备中有这个包
                         break
                 else:
                     logger.info(
-                        package.package_json["package"]+" not in device.json")
+                        package.package_json["package"]+" not in device.json")  # 如果设备中没有这个包
                 logger.info(package.package_json["package"]+" update start")
                 if (not package.startUpdate()):
                     logger.info(
@@ -53,7 +53,7 @@ def update(update_queue):
                 logger.info(package.package_json["package"]+" update finished")
                 for i, item in enumerate(packlist):
                     if (item["package"] == package.package_json["package"] and item["branch"] == package.package_json["branch"]):
-                        packlist[i] = package.package_json
+                        packlist[i] = package.package_json  # 更新device.json中的包信息
                         break
                 else:
                     packlist.append(package.package_json)
@@ -61,5 +61,5 @@ def update(update_queue):
                 with open("device.json", "w") as f:
                     f.write(json.dumps(device))
             except BaseException as e:
-                logger.info(package.package_json["package"]+" update error")
+                logger.info(package.package_json["package"]+" update error")    # 更新失败
         time.sleep(1)

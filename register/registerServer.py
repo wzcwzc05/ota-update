@@ -31,11 +31,11 @@ logger.addHandler(file_handler)
 logger.addHandler(console_handler)
 
 
-def updateNext():
+def updateNext():   # 从队列中更新下一个设备
     if (len(dM.updateList) > 0):
         updatePackage = dM.updateList[0]
-        status = dM.update(updatePackage)
-        if (not status):
+        status = dM.update(updatePackage)   # 更新设备
+        if (not status):    # 更新失败
             info = "Device:%s Package:%s Branch:%s Start Update Failed" % (
                 updatePackage["id"], updatePackage["package"], updatePackage["branch"])
             logger.error(info)
@@ -43,14 +43,14 @@ def updateNext():
             updateNext()
             return
         dM.updateList.pop(0)
-    else:
+    else:   # 更新队列为空
         info = "All Update Complete"
         logger.info(info)
         dM.updateStatus = {"device": 0, "package": {"package": "0",
                                                     "version": "0", "branch": "0"}, "status": "complete"}
 
 
-def updateDevice():
+def updateDevice(): # 从设备获取设备信息
     while (True):
         try:
             dM.updateFromDevice()

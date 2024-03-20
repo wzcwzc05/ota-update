@@ -27,7 +27,7 @@ def maxVersion() -> str:    # 获取最新版本
     dic = {"status": 200, "content.json": {}}
     package = request.args.get("package")
     branch = request.args.get("branch")
-    if package is None or branch is None:
+    if package is None or branch is None:   # 检查参数
         dic["status"] = 400
         return str(json.dumps(dic))
     content = vM.getMaxVersion(package, branch)
@@ -45,11 +45,11 @@ def getVersion() -> str:    # 获取指定版本
     package = request.args.get("package")
     branch = request.args.get("branch")
     version = request.args.get("version")
-    if package is None:
+    if package is None:  # 检查参数
         dic["status"] = 400
         return str(json.dumps(dic))
     content = vM.getCVersion(package, branch, version)
-    if (content == None):
+    if (content == None):   # 检查版本是否存在
         dic["status"] = 404
         return str(json.dumps(dic))
     else:
@@ -60,21 +60,18 @@ def getVersion() -> str:    # 获取指定版本
 @app.route('/ota-files/<path:filename>')    # 通过路由参数来获取文件名
 def ota_files(filename):
     dic = {"status": 200}
-    # 使用safe_join来防止路径遍历攻击
     safe_path = os.path.join(storage_path, filename)
     if not os.path.exists(safe_path):
         dic["status"] = 404
         return str(json.dumps(dic))
-    return send_from_directory(storage_path, filename)
+    return send_from_directory(storage_path, filename)  # 返回文件
 
 
 @app.route('/upload', methods=['PUT'])
 def upload_file():  # 上传文件
     dic = {"status": 200}
-    isForce = request.args.get("overwrite") == "1"
-    print(request.files, request.form)
-    # 检查是否有文件和JSON数据
-    if 'file' not in request.files or 'content' not in request.form:
+    isForce = request.args.get("overwrite") == "1"  # 是否强制更新
+    if 'file' not in request.files or 'content' not in request.form:        # 检查是否有文件和JSON数据
         dic["status"] = 400
         dic["error"] = "No file or content"
         return str(json.dumps(dic))
@@ -85,7 +82,7 @@ def upload_file():  # 上传文件
     try:
         content_data = json.loads(content)
         print(content_data)
-        if (vM.checkContent(content_data) == False):
+        if (vM.checkContent(content_data) == False):    # 检查content.json是否合法
             dic["status"] = 400
             dic["error"] = "Json Content Error"
             return str(json.dumps(dic))
@@ -103,18 +100,18 @@ def upload_file():  # 上传文件
     file_content = file.read()
     sha256_hash = hashlib.sha256(file_content).hexdigest()
 
-    if os.path.exists(file_path) and not isForce:
+    if os.path.exists(file_path) and not isForce:   # 检查文件是否存在
         dic["status"] = 409
         dic["error"] = "File exists"
         dic["TIP"] = "If you want to force update, please add a query parameter 'overwrite=1' to the URL"
         return str(json.dumps(dic))
-    if vM.checkVersion(name, branch, version) == True and not isForce:
+    if vM.checkVersion(name, branch, version) == True and not isForce:  # 检查版本是否存在
         dic["status"] = 409
         dic["error"] = "Version exists"
         dic["TIP"] = "If you want to force update, please add a query parameter 'overwrite=1' to the URL"
         return str(json.dumps(dic))
 
-    if sha256_hash != expected_sha256:
+    if sha256_hash != expected_sha256:  # 检查文件SHA256
         dic["status"] = 400
         dic["error"] = "SHA256 Error"
         return str(json.dumps(dic))
@@ -128,9 +125,9 @@ def upload_file():  # 上传文件
         return str(json.dumps(dic))
 
     try:
-        if vM.writeinVersion(content_data) == False:
+        if vM.writeinVersion(content_data) == False:    # 写入数据库
             dic["status"] = 409
-            dic["error"] = "Write database Error"
+            dic["error"] = "Write database Error"   # 写入数据库失败
             # 删除文件
             os.remove(file_path)
             return str(json.dumps(dic))

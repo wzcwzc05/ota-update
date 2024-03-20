@@ -20,10 +20,10 @@ class Colors:
 
 
 def colored_output(color, message):
-    return f"{color}{message}{Colors.ENDC}"
+    return f"{color}{message}{Colors.ENDC}"  # 输出带颜色的信息
 
 
-def testUrl(url: str) -> bool:
+def testUrl(url: str) -> bool:  # 测试ota服务器是否可用
     post_url = urljoin(url, "/test")
     try:
         response = requests.get(post_url)
@@ -37,7 +37,7 @@ def testUrl(url: str) -> bool:
         return False
 
 
-def getLatestVersion(url: str, package: str, branch: str) -> dict:
+def getLatestVersion(url: str, package: str, branch: str) -> dict:  # 获取最新版本
     post_url = urljoin(url, "/latestVersion")
     params = {
         "package": package,
@@ -57,7 +57,7 @@ def getLatestVersion(url: str, package: str, branch: str) -> dict:
         return None
 
 
-def checkVersion(url: str, package: str, branch: str, version: str) -> bool:
+def checkVersion(url: str, package: str, branch: str, version: str) -> bool:    # 检查版本是否存在
     post_url = urljoin(url, "/getVersion")
     params = {
         "package": package,
@@ -78,10 +78,7 @@ def checkVersion(url: str, package: str, branch: str, version: str) -> bool:
         return False
 
 
-def zipDir(dirpath, outFullName):
-    """
-    压缩指定文件夹
-    """
+def zipDir(dirpath, outFullName):   # 压缩文件夹
     zip = zipfile.ZipFile(outFullName, "w", zipfile.ZIP_DEFLATED)
     for path, dirnames, filenames in os.walk(dirpath):
         fpath = path.replace(dirpath, '')
@@ -94,7 +91,7 @@ if __name__ == "__main__":
     is_overwrite = False
     with open("config.json", "r") as f:
         config = json.loads(f.read())
-        if (config.get("url") != None):
+        if (config.get("url") != None):  # 读取配置文件
             url = config["url"]
         else:
             url = ""
@@ -105,7 +102,7 @@ if __name__ == "__main__":
     t = input()
     if (t != ""):
         url = t
-    if not testUrl(url):
+    if not testUrl(url):    # 测试ota服务器是否可用
         print(colored_output(Colors.FAIL, "[Error] The url is not available"))
         os.system("pause")
         exit(0)
@@ -115,15 +112,15 @@ if __name__ == "__main__":
             f.write(json.dumps({"url": url}, indent=4))
 
     package = input(colored_output(
-        Colors.OKBLUE, "·Please input the name of the package (necessary): "))
+        Colors.OKBLUE, "·Please input the name of the package (necessary): "))  # 输入包名
     branch = input(colored_output(
-        Colors.OKBLUE, "·Please input the branch of the package (necessary): "))
-    lastVersion = getLatestVersion(url, package, branch)
-    if lastVersion is None:
+        Colors.OKBLUE, "·Please input the branch of the package (necessary): "))    # 输入分支
+    lastVersion = getLatestVersion(url, package, branch)    # 获取最新版本
+    if lastVersion is None:  # 获取最新版本失败
         print(colored_output(Colors.WARNING,
               "[Warning] Get the latest version failed"))
         local = input(colored_output(
-            Colors.OKBLUE, "·Please input local storage of the package (necessary): "))
+            Colors.OKBLUE, "·Please input local storage of the package (necessary): "))   # 输入本地更新包路径
         lastVersion = {
             "local": local,
             "branch": branch,
@@ -135,24 +132,25 @@ if __name__ == "__main__":
             "AfterUpdate": "",
             "description": "",
             "BeforeUpdate": "",
-            "dependencies": {}
+            "dependencies": {},
+            "updateInfo": ""
         }
     else:
         print(colored_output(Colors.OKGREEN,
-              f"[Info] The latest version on server is {lastVersion['version']}"))
-    a, b, c = map(int, lastVersion["version"].split("."))
-    c += 1
+              f"[Info] The latest version on server is {lastVersion['version']}"))  # 获取最新版本成功
+    a, b, c = map(int, lastVersion["version"].split("."))   # 获取最新版本号
+    c += 1  # 版本号加1
     default_version = f"{a}.{b}.{c}"
 
     newVersion = input(colored_output(
-        Colors.OKBLUE, f"·Please input the version you want to pack (default:{default_version}): "))
-    if newVersion == "":
-        newVersion = default_version
-    if not checkVersion(url, package, branch, newVersion):
+        Colors.OKBLUE, f"·Please input the version you want to pack (default:{default_version}): "))    # 输入要打包的版本号
+    if newVersion == "":    # 输入为空
+        newVersion = default_version    # 默认版本号
+    if not checkVersion(url, package, branch, newVersion):  # 检查版本是否存在
         print(colored_output(Colors.WARNING,
               "[Warning] The version has already existed"))
         confirm = input(colored_output(
-            Colors.OKBLUE, "·Do you want to overwrite it? (y/n): "))
+            Colors.OKBLUE, "·Do you want to overwrite it? (y/n): "))    # 是否覆盖
         if confirm == "n":
             os.system("pause")
             exit(0)
@@ -164,20 +162,20 @@ if __name__ == "__main__":
             exit(0)
     else:
         print(colored_output(Colors.OKGREEN,
-              "[Info] The version is available"))
+              "[Info] The version is available"))   # 版本可用
 
     folder_path = input(colored_output(
-        Colors.OKBLUE, "·Please input the path of the folder you want to pack (necessary): "))
+        Colors.OKBLUE, "·Please input the path of the folder you want to pack (necessary): "))  # 输入要打包的文件夹路径
     if not os.path.exists(folder_path):
-        print(colored_output(Colors.FAIL, "[Error] The folder does not exist"))
+        print(colored_output(Colors.FAIL, "[Error] The folder does not exist")) # 文件夹不存在
         os.system("pause")
         exit(0)
 
     try:
-        print(colored_output(Colors.OKGREEN, "[Info] Start packing..."))
+        print(colored_output(Colors.OKGREEN, "[Info] Start packing..."))    # 开始打包
         zipDir(folder_path, f"{package}-{branch}-{newVersion}.zip")
         with open(f"{package}-{branch}-{newVersion}.zip", "rb") as f:
-            lastVersion["sha256"] = hashlib.sha256(f.read()).hexdigest()
+            lastVersion["sha256"] = hashlib.sha256(f.read()).hexdigest()    # 计算sha256
         print(colored_output(Colors.OKGREEN, "[Info] Pack success"))
     except Exception as e:
         print(colored_output(Colors.FAIL, "[Error] Pack failed"))
@@ -185,15 +183,15 @@ if __name__ == "__main__":
         os.system("pause")
         exit(0)
 
-    lastVersion["version"] = newVersion
-    lastVersion["remote"] = url
-    with open("content.json", "w") as f:
+    lastVersion["version"] = newVersion   # 更新版本号
+    lastVersion["remote"] = url   # 更新远程地址
+    with open("content.json", "w") as f:    # 生成content.json
         f.write(json.dumps(lastVersion, indent=4))
     f.close()
     print(colored_output(Colors.OKGREEN,
           "content.json has been generated according to the last version in the folder..."))
     print(colored_output(Colors.OKBLUE, "You can modify the content.json if you need"))
-    os.system("start content.json")
+    os.system("start content.json")   # 打开content.json
     os.system("pause")
 
     try:
@@ -201,7 +199,7 @@ if __name__ == "__main__":
         print(colored_output(Colors.OKGREEN,
               f"[Info] The upload url is {post_url}"))
         confirm = input(colored_output(
-            Colors.OKBLUE, "· Do you want to upload now? (y/n): "))
+            Colors.OKBLUE, "· Do you want to upload now? (y/n): "))   # 是否上传
 
         if confirm == "n":
             print(colored_output(Colors.OKBLUE,
@@ -213,15 +211,15 @@ if __name__ == "__main__":
             os.system("pause")
             exit(0)
 
-        if is_overwrite:
+        if is_overwrite:    # 是否覆盖
             post_url += "?overwrite=1"
         with open("content.json", "r") as f:
-            lastVersion = json.loads(f.read())
+            lastVersion = json.loads(f.read())  # 读取content.json
         f.close()
-        with open(f"{package}-{branch}-{newVersion}.zip", "rb") as file:
+        with open(f"{package}-{branch}-{newVersion}.zip", "rb") as file:    # 读取文件
             files = {"file": file}
             response = requests.put(post_url, files=files, data={
-                                    "content": json.dumps(lastVersion)})
+                                    "content": json.dumps(lastVersion)})    # 上传文件和content.json
 
         print(colored_output(Colors.OKGREEN, "[Info] Uploading..."))
 

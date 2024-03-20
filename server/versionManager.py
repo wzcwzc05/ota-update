@@ -28,8 +28,7 @@ def getMaxVersion(package: str, branch: str) -> dict:   # 获取最新版本的�
         return results[0][0]
 
 
-def getCVersion(package: str, branch=None, version=None) -> list:
-    # 建立数据库连接
+def getCVersion(package: str, branch=None, version=None) -> list:  # 获取指定版本的信息
     db = pymysql.connect(host=db_host,
                          user=db_user,
                          password=db_password,
@@ -37,9 +36,8 @@ def getCVersion(package: str, branch=None, version=None) -> list:
                          port=db_port)
     try:
         cursor = db.cursor(pymysql.cursors.DictCursor)
-        # 基础查询语句
         sql = "SELECT name, branch, version, content FROM ota WHERE name=%s"
-        params = [package]  # 查询参数列表
+        params = [package] 
 
         if branch:
             sql += " AND branch=%s"
@@ -75,7 +73,7 @@ def writeinVersion(content: dict) -> bool:  # 写入版本信息
     return True
 
 
-def checkContent(content: dict) -> bool:
+def checkContent(content: dict) -> bool:    # 检查content.json是否合法
     required_keys = ["sha256", "version", "branch", "package", "local",
                      "remote", "BeforeUpdate", "AfterUpdate", "dependencies", "restore"]
     for i in required_keys:
@@ -84,7 +82,7 @@ def checkContent(content: dict) -> bool:
     return True
 
 
-def checkVersion(package: str, branch: str, version: str) -> bool:
+def checkVersion(package: str, branch: str, version: str) -> bool:  # 检查版本是否存在
     db = pymysql.connect(host=db_host,
                          user=db_user,
                          password=db_password,
