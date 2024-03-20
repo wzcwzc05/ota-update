@@ -149,11 +149,13 @@ def registerDevice(content: str, address: str) -> str:
         device_id = db.insert_id()
         db.commit()
         db.close()
+        deleteExpiredDevices()
         return device_id
     else:
         cursor.execute("UPDATE devices SET content='%s' WHERE address='%s'" % (
             json.dumps(content), address))
         db.close()
+        deleteExpiredDevices()
         return results[0][0]
 
 
@@ -217,13 +219,16 @@ def getPackage(package: str, branch: str, version: str) -> dict:
     with open("config.json", "r") as f:
         config = json.loads(f.read())
     ota_server = config["ota_server"]
-    dic: dict = requests.get(urljoin(ota_server, "/getVersion?"+urlencode(
-        {"package": package, "branch": branch, "version": version}))).json()
-    if (dic["status"] == 200):
-        package_json = dic["list"][0]["content"]
-    else:
-        package_json = None
-    return package_json
+    try:
+        dic: dict = requests.get(urljoin(ota_server, "/getVersion?"+urlencode(
+            {"package": package, "branch": branch, "version": version}))).json()
+        if (dic["status"] == 200):
+            package_json = dic["list"][0]["content"]
+        else:
+            package_json = None
+        return package_json
+    except Exception as e:
+        return None
 
 
 def update(updatePackage: dict) -> dict:
@@ -233,6 +238,8 @@ def update(updatePackage: dict) -> dict:
     version = updatePackage["version"]
     address = getAddress(id)
     package_json = getPackage(package, branch, version)
+    if (package_json == None):
+        return False
     if (address == None):
         return False
     else:

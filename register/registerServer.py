@@ -25,9 +25,10 @@ logger.setLevel(logging.INFO)
 logfile_name = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())+"-http.log"
 file_handler = logging.FileHandler(os.path.join(log_path, logfile_name))
 console_handler = logging.StreamHandler()
+file_handler.setFormatter(formatter)
+console_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 logger.addHandler(console_handler)
-file_handler.setFormatter(formatter)
 
 
 def updateNext():
@@ -67,7 +68,6 @@ def hello_world():
 
 @app.route("/register", methods=["POST", "GET"])
 def register():
-    dM.deleteExpiredDevices()
     remote_ip = request.remote_addr
     content = json.loads(request.form.get("content"))
     address = request.form.get("address")
@@ -219,6 +219,33 @@ def update():
                     {"id": device_id, "package": pack["package"], "branch": pack["branch"], "version": pack["version"]})
         updateNext()
         return str(json.dumps(dic))
+
+
+@app.route("/getLog", methods=["POST", "GET"])
+def getLog():
+    with open(os.path.join(log_path, logfile_name), "r") as f:
+        logs = f.read()
+    # 进行日志切割，直到上一个All Update Complete
+    log_lines = logs.strip().split('\n')
+    count = 0
+    last_complete_index = None
+    if ("All Update Complete" in log_lines[len(log_lines)-1]):
+        line = 2
+    else:
+        line = 1
+    for i in range(len(log_lines)-1, -1, -1):
+        if "All Update Complete" in log_lines[i]:
+            last_complete_index = i
+            count += 1
+            if (count == line):
+                break
+    if (count < line):
+        last_complete_index = 0
+    if last_complete_index is None:
+        return []
+    latest_logs = log_lines[last_complete_index:]
+
+    return '\n'.join(latest_logs)
 
 
 if (__name__ == "__main__"):
