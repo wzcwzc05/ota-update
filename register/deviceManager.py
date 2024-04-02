@@ -14,10 +14,10 @@ global updateStatus
 global updateList
 updateStatus = {"device": 0, "package": {"package": "0",
                                          "version": "0", "branch": "0"}, "status": "complete"}  # 更新状态
-updateList = [] # 更新队列
+updateList = []  # 更新队列
 
 
-def getPackages(content: dict) -> list: # 解析device.json,输出包列表
+def getPackages(content: dict) -> list:  # 解析device.json,输出包列表
     packages = []
     try:
         for item in content["packages"]:
@@ -32,7 +32,7 @@ def getPackages(content: dict) -> list: # 解析device.json,输出包列表
         return None
 
 
-def deleteExpiredDevices(): # 删除过期设备
+def deleteExpiredDevices():  # 删除过期设备
     db = pymysql.connect(host=db_host,
                          user=db_user,
                          password=db_password,
@@ -65,7 +65,7 @@ def getAllDevicesId():  # 获取所有设备id
         return None
 
 
-def getDeviceById(id: int) -> list: # 通过id获取设备包列表
+def getDeviceById(id: int) -> list:  # 通过id获取设备包列表
     try:
         db = pymysql.connect(host=db_host,
                              user=db_user,
@@ -86,7 +86,7 @@ def getDeviceById(id: int) -> list: # 通过id获取设备包列表
         return None
 
 
-def updateFromDevice(): # 从设备获取信息
+def updateFromDevice():  # 从设备获取信息
     db = pymysql.connect(host=db_host,
                          user=db_user,
                          password=db_password,
@@ -198,7 +198,7 @@ def heartBeatDevice(device_id: str) -> bool:    # 心跳
         return True
 
 
-def getAddress(id: int) -> str: # 通过id获取地址
+def getAddress(id: int) -> str:  # 通过id获取地址
     db = pymysql.connect(host=db_host,
                          user=db_user,
                          password=db_password,
@@ -237,16 +237,33 @@ def update(updatePackage: dict) -> dict:    # 更新设备
     branch = updatePackage["branch"]
     version = updatePackage["version"]
     address = getAddress(id)    # 获取地址
-    package_json = getPackage(package, branch, version) # 获取更新包content.json
+    package_json = getPackage(package, branch, version)  # 获取更新包content.json
     if (package_json == None):
         return False
     if (address == None):
         return False
     else:
-        if (updateToDevice(id, package_json, address)): # 更新设备
+        if (updateToDevice(id, package_json, address)):  # 更新设备
             return True
         else:
             return False
+
+
+def getDeviceNameById(id: int) -> str:  # 通过id获取设备名
+    db = pymysql.connect(host=db_host,
+                         user=db_user,
+                         password=db_password,
+                         database=db_database,
+                         port=db_port)
+    cursor = db.cursor()
+    cursor.execute("SELECT device FROM devices WHERE id='%s'" % id)
+    results = cursor.fetchall()
+    if (len(results) == 0):
+        db.close()
+        return None
+    else:
+        db.close()
+        return results[0][0]
 
 
 if __name__ == "__main__":

@@ -12,8 +12,7 @@ with open("config.json", "r") as f:
 flask_host = config["flask"]["host"]
 flask_port = int(config["flask"]["port"])
 isDebug = bool(config["flask"]["debug"])
-storage_path = config["storage"]["path"]
-log_path = ".\\log\\"
+log_path = "log/"
 
 app = Flask(__name__)
 
@@ -50,7 +49,7 @@ def updateNext():   # 从队列中更新下一个设备
                                                     "version": "0", "branch": "0"}, "status": "complete"}
 
 
-def updateDevice(): # 从设备获取设备信息
+def updateDevice():  # 从设备获取设备信息
     while (True):
         try:
             dM.updateFromDevice()
@@ -121,6 +120,7 @@ def getAllInfo():
             temp = {}
             temp["id"] = id
             temp["packages"] = dM.getDeviceById(id)
+            temp["device"] = dM.getDeviceNameById(id)
             if (temp["packages"] == None):
                 continue
             dic["devices"].append(temp)
@@ -142,6 +142,7 @@ def getDeviceInfo():
     else:
         dic["id"] = id
         dic["packages"] = lst
+        dic["device"] = dM.getDeviceNameById(id)
         return str(json.dumps(dic))
 
 
@@ -210,6 +211,7 @@ def update():
         dic = {"status": 400, "error": "Bad Request"}
         return str(json.dumps(dic))
     else:
+        isEmpty = len(dM.updateList) == 0
         updatelist: list = content["devices"]
         for item in updatelist:
             device_id = item["id"]
@@ -217,7 +219,8 @@ def update():
             for pack in packlist:
                 dM.updateList.append(
                     {"id": device_id, "package": pack["package"], "branch": pack["branch"], "version": pack["version"]})
-        updateNext()
+        if (isEmpty):
+            updateNext()
         return str(json.dumps(dic))
 
 
@@ -246,6 +249,20 @@ def getLog():
     latest_logs = log_lines[last_complete_index:]
 
     return '\n'.join(latest_logs)
+
+
+@app.route("/cancelUpdate", methods=["POST", "GET"])
+def cancelUpdate():
+    dM.updateList = []
+    dic = {"status": 200}
+    return str(json.dumps(dic))
+
+
+@app.route("/updateNext", methods=["POST", "GET"])
+def PupdateNext():
+    dic = {"status": 200}
+    updateNext()
+    return str(json.dumps(dic))
 
 
 if (__name__ == "__main__"):

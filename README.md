@@ -12,11 +12,13 @@
 | local        | 字符串 | 本地包位置           |
 | remote       | 字符串 | OTA服务器            |
 | sha256       | 字符串 | 升级包的SHA256校验码 |
-| BeforeUpdate | 字符串 | 更新前指令           |
+|              |        |                      |
 | AfterUpdate  | 字符串 | 更新后指令           |
 | dependencies | JSON   | 依赖                 |
 
 ## 一、生产运行侧
+
+重启设备
 
 daemon程序
 

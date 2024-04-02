@@ -89,7 +89,7 @@ def zipDir(dirpath, outFullName):   # 压缩文件夹
 
 if __name__ == "__main__":
     is_overwrite = False
-    with open("config.json", "r") as f:
+    with open("config.json", "r",encoding="utf-8") as f:
         config = json.loads(f.read())
         if (config.get("url") != None):  # 读取配置文件
             url = config["url"]
@@ -108,7 +108,7 @@ if __name__ == "__main__":
         exit(0)
     else:
         print(colored_output(Colors.OKGREEN, "[Info] The url is available"))
-        with open("config.json", "w") as f:
+        with open("config.json", "w",encoding="utf-8") as f:
             f.write(json.dumps({"url": url}, indent=4))
 
     package = input(colored_output(
@@ -167,15 +167,18 @@ if __name__ == "__main__":
     folder_path = input(colored_output(
         Colors.OKBLUE, "·Please input the path of the folder you want to pack (necessary): "))  # 输入要打包的文件夹路径
     if not os.path.exists(folder_path):
-        print(colored_output(Colors.FAIL, "[Error] The folder does not exist")) # 文件夹不存在
+        print(colored_output(Colors.FAIL,
+              "[Error] The folder does not exist"))  # 文件夹不存在
         os.system("pause")
         exit(0)
 
     try:
-        print(colored_output(Colors.OKGREEN, "[Info] Start packing..."))    # 开始打包
+        print(colored_output(Colors.OKGREEN,
+              "[Info] Start packing..."))    # 开始打包
         zipDir(folder_path, f"{package}-{branch}-{newVersion}.zip")
         with open(f"{package}-{branch}-{newVersion}.zip", "rb") as f:
-            lastVersion["sha256"] = hashlib.sha256(f.read()).hexdigest()    # 计算sha256
+            lastVersion["sha256"] = hashlib.sha256(
+                f.read()).hexdigest()    # 计算sha256
         print(colored_output(Colors.OKGREEN, "[Info] Pack success"))
     except Exception as e:
         print(colored_output(Colors.FAIL, "[Error] Pack failed"))
@@ -185,7 +188,7 @@ if __name__ == "__main__":
 
     lastVersion["version"] = newVersion   # 更新版本号
     lastVersion["remote"] = url   # 更新远程地址
-    with open("content.json", "w") as f:    # 生成content.json
+    with open("content.json", "w",encoding="utf-8") as f:    # 生成content.json
         f.write(json.dumps(lastVersion, indent=4))
     f.close()
     print(colored_output(Colors.OKGREEN,
@@ -213,7 +216,7 @@ if __name__ == "__main__":
 
         if is_overwrite:    # 是否覆盖
             post_url += "?overwrite=1"
-        with open("content.json", "r") as f:
+        with open("content.json", "r", encoding="utf-8") as f:
             lastVersion = json.loads(f.read())  # 读取content.json
         f.close()
         with open(f"{package}-{branch}-{newVersion}.zip", "rb") as file:    # 读取文件

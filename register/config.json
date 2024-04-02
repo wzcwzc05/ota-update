@@ -11,8 +11,5 @@
     "port": 6500,
     "debug": true
   },
-  "storage": {
-    "path": "..\\storage"
-  },
   "ota_server": "http://127.0.0.1:5500"
 }
