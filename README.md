@@ -323,7 +323,8 @@ devices表：
       "branch": "major"	// 包分支
     },
     ...
-  ]
+  ],
+      "progress":99	// percent
 }
 ```
 获取当前升级任务的日志

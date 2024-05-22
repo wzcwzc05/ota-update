@@ -1,14 +1,14 @@
 {
-    "local": "delay/",
-    "branch": "windows",
+    "local": "/home/shx/ota/ota-server/server",
+    "branch": "major",
     "remote": "http://192.168.1.203:5500",
-    "sha256": "898fead1b81d8760b62e97af120e00c4ac7f3e4de3d2cdbf75246e631ac94519",
-    "package": "delay",
+    "sha256": "e56308fc6f208d6638bd9316b3182d2a2a16843c179f8634c058658bc3545523",
+    "package": "ota-server",
     "restore": "",
-    "version": "0.0.2",
-    "updateInfo": "",
-    "AfterUpdate": "timeout /t 10",
-    "description": "",
+    "version": "1.0.3",
+    "AfterUpdate": "systemctl restart ota-server",
+    "description": "1.0.2OTA\u4e91\u7aef\u670d\u52a1\u5668\u66f4\u65b0",
     "BeforeUpdate": "",
-    "dependencies": {}
+    "dependencies": {},
+    "updateInfo": "OTA\u4e91\u7aef\u670d\u52a1\u5668\u52a0\u5165\u66f4\u65b0"
 }

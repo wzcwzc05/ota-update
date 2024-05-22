@@ -81,7 +81,6 @@ def upload_file():  # 上传文件
     content_data = {}
     try:
         content_data = json.loads(content)
-        print(content_data)
         if (vM.checkContent(content_data) == False):    # 检查content.json是否合法
             dic["status"] = 400
             dic["error"] = "Json Content Error"
@@ -125,6 +124,7 @@ def upload_file():  # 上传文件
         return str(json.dumps(dic))
 
     try:
+        print(content_data)
         if vM.writeinVersion(content_data) == False:    # 写入数据库
             dic["status"] = 409
             dic["error"] = "Write database Error"   # 写入数据库失败

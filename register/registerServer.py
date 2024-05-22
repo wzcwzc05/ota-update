@@ -13,7 +13,7 @@ flask_host = config["flask"]["host"]
 flask_port = int(config["flask"]["port"])
 isDebug = bool(config["flask"]["debug"])
 log_path = "log/"
-
+totallength = 0
 app = Flask(__name__)
 
 os.mkdir("log") if not os.path.exists("log") else None
@@ -38,11 +38,14 @@ def updateNext():   # 从队列中更新下一个设备
             info = "Device:%s Package:%s Branch:%s Start Update Failed" % (
                 updatePackage["id"], updatePackage["package"], updatePackage["branch"])
             logger.error(info)
+            dM.updateByDeviceId(updatePackage["id"])
             dM.updateList.pop(0)
             updateNext()
             return
         dM.updateList.pop(0)
     else:   # 更新队列为空
+        time.sleep(2)
+        dM.updateFromDevice()
         info = "All Update Complete"
         logger.info(info)
         dM.updateStatus = {"device": 0, "package": {"package": "0",
@@ -157,6 +160,10 @@ def getStatus():
 def getUpdatelist():
     dic = {"status": 200}
     dic["list"] = dM.updateList
+    if (totallength != 0):
+        dic["progress"] = (totallength - len(dM.updateList))/totallength*100
+    else:
+        dic["progress"] = 0
     return str(json.dumps(dic))
 
 
@@ -179,14 +186,14 @@ def updateInfo():
         return str(json.dumps(dic))
     update = content["update"]
     if (update["status"] == "Failed"):
-        dM.updateFromDevice()
+        dM.updateByDeviceId(update["device"])
         info = "Device:%s Package:%s Branch:%s Status:%s Failed" % (
             update["device"], update["package"]["package"], update["package"]["branch"], update["status"])
         logger.error(info)
         updateNext()
     elif (update["status"] == "Completed"):
-        time.sleep(1)
-        dM.updateFromDevice()
+        time.sleep(2)
+        print(update["device"], dM.updateByDeviceId(update["device"]))
         info = "Device:%s Package:%s Branch:%s  Complete" % (
             update["device"], update["package"]["package"], update["package"]["branch"])
         logger.info(info)
@@ -221,6 +228,7 @@ def update():
                     {"id": device_id, "package": pack["package"], "branch": pack["branch"], "version": pack["version"]})
         if (isEmpty):
             updateNext()
+        totallength = len(dM.updateList)
         return str(json.dumps(dic))
 
 

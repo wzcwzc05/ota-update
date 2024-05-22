@@ -37,7 +37,7 @@ def getCVersion(package: str, branch=None, version=None) -> list:  # 获取指�
     try:
         cursor = db.cursor(pymysql.cursors.DictCursor)
         sql = "SELECT name, branch, version, content FROM ota WHERE name=%s"
-        params = [package] 
+        params = [package]
 
         if branch:
             sql += " AND branch=%s"
@@ -63,10 +63,12 @@ def writeinVersion(content: dict) -> bool:  # 写入版本信息
     sql = ""
     if (checkVersion(content["package"], content["branch"], content["version"])):
         sql = "UPDATE ota SET content='%s' WHERE name='%s' AND branch='%s' AND version='%s'" % (
-            json.dumps(content), content["package"], content["branch"], content["version"])
+            json.dumps(content,ensure_ascii=False), content["package"], content["branch"], content["version"])
     else:
         sql = "INSERT INTO ota (name, version, branch, content) VALUES ('%s', '%s', '%s', '%s')" % (
-            content["package"], content["version"], content["branch"], json.dumps(content))
+            content["package"], content["version"], content["branch"], json.dumps(content, ensure_ascii=False))
+    sql.encode("utf-8")
+    print(sql)
     cursor.execute(sql)
     db.commit()
     db.close()

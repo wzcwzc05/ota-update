@@ -111,10 +111,52 @@ def updateFromDevice():  # 从设备获取信息
                 print("Failed to get content.json from " +
                       device + " at " + address)
         except Exception as e:
+            print(e)
             deleteExpiredDevices()
             print("Failed to get version from " + device + " at " + address)
 
     db.close()
+
+
+def updateByDeviceId(deviceid: int):
+    db = pymysql.connect(host=db_host,
+                         user=db_user,
+                         password=db_password,
+                         database=db_database,
+                         port=db_port)
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM devices WHERE id='%s'" % deviceid)
+    results = cursor.fetchall()
+    if (len(results) == 0):
+        db.close()
+        return False
+    else:
+        device = results[0][1]
+        address = results[0][2]
+        post_url = urljoin(address, "/getInfo")
+        try:
+            response = requests.get(post_url)
+            data = json.loads(response.text)
+            # print(data)
+            if (data["status"] == 200):
+                # print("!!!")
+                cursor.execute("UPDATE devices SET content='%s' WHERE address='%s'" % (
+                    data["content"], address))          
+                db.commit()
+                # print(data["content"])
+                db.close()
+                return True
+            else:
+                deleteExpiredDevices()
+                print("Failed to get content.json from " +
+                      device + " at " + address)
+                return False
+        except Exception as e:
+            print(e)
+            deleteExpiredDevices()
+            print("Failed to get version from " + device + " at " + address)
+            db.close()
+            return False
 
 
 def updateToDevice(id, packages: dict, address: str) -> None:   # 更新设备某个包

@@ -23,16 +23,16 @@ class update_package:
         else:
             self.log_handler = log_handler
         os.mkdir("tmp") if not os.path.exists("tmp") else None  # 创建tmp文件夹
-        os.mkdir("log") if not os.path.exists("log") else None # 创建log文件夹
+        os.mkdir("log") if not os.path.exists("log") else None  # 创建log文件夹
         self.package_json = package_json
         self.device_id = device_id
         self.package_name = "%s-%s-%s.zip" % (
             package_json["package"], package_json["branch"], package_json["version"])   # 下载的安装包文件名
-        self.local_path = package_json["local"] # 安装包解压路径
+        self.local_path = package_json["local"]  # 安装包解压路径
         temp = "ota-files/%s/%s/%s" % (
             package_json["package"], package_json["branch"], self.package_name)
 
-        self.remote_path = urljoin( # 安装包下载地址
+        self.remote_path = urljoin(  # 安装包下载地址
             package_json["remote"], temp)
         temp = "/updateInfo"
         self.register_path = urljoin(register_path, temp)   # 上报更新状态地址
@@ -58,7 +58,7 @@ class update_package:
             self.package_json["package"]+" download package...")
         try:
             self.report("Downloading")
-            self.download() # 下载安装包
+            self.download()  # 下载安装包
         except Exception as e:
             self.log_handler.error(e)
             self.report("Failed")
@@ -104,7 +104,7 @@ class update_package:
             with open(self.file_path, 'wb') as f:
                 for chunk in r.iter_content(chunk_size=8192):
                     f.write(chunk)
-        sha256_n = hashlib.sha256() # 计算下载文件的sha256
+        sha256_n = hashlib.sha256()  # 计算下载文件的sha256
         with open(self.file_path, "rb") as f:
             for byte_block in iter(lambda: f.read(4096), b""):
                 sha256_n.update(byte_block)
@@ -146,7 +146,7 @@ class update_package:
             self.log_handler.info(complete.stdout)
 
     def update(self):
-        zipfile.ZipFile(self.file_path).extractall(self.local_path) # 解压安装包
+        zipfile.ZipFile(self.file_path).extractall(self.local_path)  # 解压安装包
 
     def report(self, status: str):  # 上报更新状态
         res = {

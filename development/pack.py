@@ -47,6 +47,7 @@ def getLatestVersion(url: str, package: str, branch: str) -> dict:  # 获取最�
     try:
         response = requests.get(post_url)
         data = json.loads(response.text)
+        print(str(data["content.json"]))
         content = json.loads(str(data["content.json"]))
         if (data["status"] == 200):
             return content
@@ -89,7 +90,7 @@ def zipDir(dirpath, outFullName):   # 压缩文件夹
 
 if __name__ == "__main__":
     is_overwrite = False
-    with open("config.json", "r",encoding="utf-8") as f:
+    with open("config.json", "r", encoding="utf-8") as f:
         config = json.loads(f.read())
         if (config.get("url") != None):  # 读取配置文件
             url = config["url"]
@@ -108,7 +109,7 @@ if __name__ == "__main__":
         exit(0)
     else:
         print(colored_output(Colors.OKGREEN, "[Info] The url is available"))
-        with open("config.json", "w",encoding="utf-8") as f:
+        with open("config.json", "w", encoding="utf-8") as f:
             f.write(json.dumps({"url": url}, indent=4))
 
     package = input(colored_output(
@@ -188,7 +189,7 @@ if __name__ == "__main__":
 
     lastVersion["version"] = newVersion   # 更新版本号
     lastVersion["remote"] = url   # 更新远程地址
-    with open("content.json", "w",encoding="utf-8") as f:    # 生成content.json
+    with open("content.json", "w", encoding="utf-8") as f:    # 生成content.json
         f.write(json.dumps(lastVersion, indent=4))
     f.close()
     print(colored_output(Colors.OKGREEN,
@@ -221,8 +222,9 @@ if __name__ == "__main__":
         f.close()
         with open(f"{package}-{branch}-{newVersion}.zip", "rb") as file:    # 读取文件
             files = {"file": file}
+            print(json.dumps(lastVersion, ensure_ascii=False))
             response = requests.put(post_url, files=files, data={
-                                    "content": json.dumps(lastVersion)})    # 上传文件和content.json
+                                    "content": json.dumps(lastVersion, ensure_ascii=False)})    # 上传文件和content.json
 
         print(colored_output(Colors.OKGREEN, "[Info] Uploading..."))
 
