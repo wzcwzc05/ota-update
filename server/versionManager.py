@@ -63,7 +63,7 @@ def writeinVersion(content: dict) -> bool:  # 写入版本信息
     sql = ""
     if (checkVersion(content["package"], content["branch"], content["version"])):
         sql = "UPDATE ota SET content='%s' WHERE name='%s' AND branch='%s' AND version='%s'" % (
-            json.dumps(content,ensure_ascii=False), content["package"], content["branch"], content["version"])
+            json.dumps(content, ensure_ascii=False), content["package"], content["branch"], content["version"])
     else:
         sql = "INSERT INTO ota (name, version, branch, content) VALUES ('%s', '%s', '%s', '%s')" % (
             content["package"], content["version"], content["branch"], json.dumps(content, ensure_ascii=False))
@@ -100,3 +100,46 @@ def checkVersion(package: str, branch: str, version: str) -> bool:  # 检查版�
         return False
     db.close()
     return True
+
+
+def getAllPackageName() -> list:    # 获取所有包名
+    db= pymysql.connect(host=db_host,
+                         user = db_user,
+                         password = db_password,
+                         database = db_database,
+                         port = db_port)
+    cursor= db.cursor()
+    cursor.execute("SELECT DISTINCT name FROM ota")
+    results= cursor.fetchall()
+    db.close()
+    return results
+
+def getPackageBranch(package: str) -> list:    # 获取指定包名的所有分支
+    db= pymysql.connect(host=db_host,
+                         user = db_user,
+                         password = db_password,
+                         database = db_database,
+                         port = db_port)
+    cursor= db.cursor()
+    cursor.execute("SELECT DISTINCT branch FROM ota WHERE name='%s'" % package)
+    results= cursor.fetchall()
+    db.close()
+    return results
+
+def getPackageVersion(package: str, branch: str) -> list:    # 获取指定包名和分支的所有版本
+    db= pymysql.connect(host=db_host,
+                         user = db_user,
+                         password = db_password,
+                         database = db_database,
+                         port = db_port)
+    cursor= db.cursor()
+    cursor.execute(
+        "SELECT version FROM ota WHERE name='%s' AND branch='%s'" % (package, branch))
+    results= cursor.fetchall()
+    db.close()
+    return results
+
+if __name__ =="__main__":
+    print(getAllPackageName())
+    print(getPackageBranch("test"))
+    print(getPackageVersion("test", "major"))

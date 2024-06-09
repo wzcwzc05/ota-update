@@ -1,7 +1,8 @@
-from flask import Flask, request, send_from_directory
+from flask import Flask, request, jsonify, render_template, session, redirect,  send_from_directory
 import json
 import os
 import versionManager as vM
+import dashboard as dh
 import hashlib
 import mimetypes
 
@@ -17,6 +18,7 @@ storage_path = config["storage"]["path"]
 app = Flask(__name__)
 required_keys = ["sha256", "version", "branch", "package", "local",
                  "remote", "BeforeUpdate", "AfterUpdate", "dependencies", "restore"]
+app.secret_key = os.urandom(24)
 
 
 @app.route("/test")
@@ -79,6 +81,45 @@ def libs(filename):
 def ota_manage():
     with open("pages/index.html", "r", encoding="utf-8") as f:
         return f.read()
+
+
+@app.route('/login')
+def ota_admin():
+    username = request.args.get("username")
+    password = request.args.get("password")
+    if (username is None or password is None):
+        if ('username' in session):
+            return redirect("/dashboard")
+        else:
+            return render_template("login.html")
+    else:
+        if (dh.checkUserAndPasswd(username, password)):
+            session['username'] = username  # 将用户名存储在会话中
+            response = {
+                'status': 'success',
+                'message': f'Welcome, {username}!'
+            }
+            return jsonify(response)
+        else:
+            response = {
+                'status': 'failure',
+                'message': 'Invalid username or password'
+            }
+            return jsonify(response)
+
+
+@app.route('/logout')
+def ota_logout():
+    session.pop('username', None)
+    return redirect("/login")
+
+
+@app.route("/dashboard")
+def dashboard():
+    if ('username' in session):
+        return render_template("dashboard.html")
+    else:
+        return redirect("/login")
 
 
 @app.route('/checkToken')

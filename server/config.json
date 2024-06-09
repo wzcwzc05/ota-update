@@ -2,8 +2,8 @@
   "database": {
     "host": "localhost",
     "port": "3306",
-    "user": "ota",
-    "password": "tianqibucuo",
+    "user": "root",
+    "password": "Wzcwzc050519!",
     "database": "ota"
   },
   "flask": {
