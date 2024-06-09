@@ -80,6 +80,7 @@ def checkContent(content: dict) -> bool:    # 检查content.json是否合法
                      "remote", "BeforeUpdate", "AfterUpdate", "dependencies", "restore"]
     for i in required_keys:
         if i not in content:
+            print(i)
             return False
     return True
 

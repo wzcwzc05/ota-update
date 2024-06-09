@@ -3,7 +3,10 @@ import json
 import os
 import versionManager as vM
 import hashlib
+import mimetypes
 
+mimetypes.add_type('application/javascript', '.js')
+mimetypes.add_type('text/css', '.css')
 config = {}
 with open("config.json", "r") as f:
     config = json.loads(f.read())
@@ -67,6 +70,26 @@ def ota_files(filename):
     return send_from_directory(storage_path, filename)  # 返回文件
 
 
+@app.route("/libs/<path:filename>")    # 通过路由参数来获取文件名
+def libs(filename):
+    return send_from_directory('libs', filename)
+
+
+@app.route('/manage')
+def ota_manage():
+    with open("pages/index.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+
+@app.route('/checkToken')
+def checkToken():
+    token = request.args.get("token")
+    if token == "123456":
+        return "Success"
+    else:
+        return "Failed"
+
+
 @app.route('/upload', methods=['PUT'])
 def upload_file():  # 上传文件
     dic = {"status": 200}
@@ -81,6 +104,7 @@ def upload_file():  # 上传文件
     content_data = {}
     try:
         content_data = json.loads(content)
+        # print(content_data)
         if (vM.checkContent(content_data) == False):    # 检查content.json是否合法
             dic["status"] = 400
             dic["error"] = "Json Content Error"

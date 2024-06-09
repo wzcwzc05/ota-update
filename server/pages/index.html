@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OTA Package Manager</title>
+    <script type="text/javascript" src="libs/crypto-js.min.js"></script>
+    <script type="text/javascript" src="libs/jquery.min.js"></script>
+    <!-- <link
+      rel="stylesheet"
+      href="https://cdn.bootcdn.net/ajax/libs/bootstrap/4.5.2/css/bootstrap.min.css"
+    /> -->
+    <link rel="stylesheet" href="libs/bootstrap.min.css" />
+    <script type="text/javascript" src="libs/bootstrap.min.js"></script>
+    <style>
+      body {
+        padding: 20px;
+        background-color: #f8f9fa;
+      }
+      .container {
+        max-width: 800px;
+        margin: auto;
+        background: #fff;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+      }
+      .step {
+        margin-bottom: 20px;
+      }
+      .output {
+        margin-top: 20px;
+        padding: 10px;
+        border: 1px solid #ccc;
+      }
+      .hidden {
+        display: none;
+      }
+      .error {
+        color: red;
+      }
+      .success {
+        color: green;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="text-center">OTA云端包上传工具</h1>
+
+      <div class="step" id="step1">
+        <h2>Step 1: 输入服务器密钥</h2>
+        <input
+          type="text"
+          id="token"
+          class="form-control"
+          placeholder="Enter server Token"
+        />
+        <button class="btn btn-primary mt-3" onclick="checkToken()">
+          下一步
+        </button>
+        <div class="output hidden" id="output1"></div>
+      </div>
+
+      <div class="step hidden" id="step2">
+        <h2>Step 2: 输入包基本信息</h2>
+        <input
+          type="text"
+          id="package"
+          class="form-control"
+          placeholder="Enter package name"
+        />
+        <input
+          type="text"
+          id="branch"
+          class="form-control mt-2"
+          placeholder="Enter branch name"
+        />
+        <button class="btn btn-primary mt-3" onclick="getLatestVersion()">
+          下一步
+        </button>
+        <div class="output hidden" id="output2"></div>
+      </div>
+
+      <div class="step hidden" id="step3">
+        <h2>Step 3: 输入新版本信息</h2>
+        <input
+          type="text"
+          id="newVersion"
+          class="form-control"
+          placeholder="Enter new version"
+        />
+        <button class="btn btn-primary mt-3" onclick="checkNewVersion()">
+          下一步
+        </button>
+        <div class="output hidden" id="output3"></div>
+      </div>
+
+      <div class="step hidden" id="step4">
+        <h2>Step 4: 生成Content.json</h2>
+        <label for="packname">包名:</label>
+        <input type="text" id="packname" class="form-control" />
+        <label for="branchname">分支名:</label>
+        <input type="text" id="branchname" class="form-control" />
+        <label for="version">版本号:</label>
+        <input type="text" id="version" class="form-control" />
+        <label for="remote">远程注册地址:</label>
+        <input type="text" id="remote" class="form-control" />
+        <label for="local">本地存储位置:</label>
+        <input type="text" id="local" class="form-control" />
+        <label for="updateInfo">升级信息:</label>
+        <input type="text" id="updateInfo" class="form-control" />
+        <label for="description">描述:</label>
+        <input type="text" id="description" class="form-control" />
+        <label for="BeforeUpdate">升级前指令:</label>
+        <input type="text" id="BeforeUpdate" class="form-control" />
+        <label for="AfterUpdate">升级后指令:</label>
+        <input type="text" id="AfterUpdate" class="form-control" />
+        <label for="restore">恢复现场指令:</label>
+        <input type="text" id="restore" class="form-control" />
+        <label for="dependencies">依赖:</label>
+        <input type="text" id="dependencies" class="form-control" />
+        <button class="btn btn-primary mt-3" onclick="generateNewVersion()">
+          下一步
+        </button>
+        <div class="output hidden" id="output4"></div>
+      </div>
+      <div class="step hidden" id="step5">
+        <h2>Step 5: 选择上传文件</h2>
+        <input type="file" id="file" class="form-control" />
+        <button class="btn btn-primary mt-3" onclick="fileFetch()">
+          下一步
+        </button>
+        <div class="output hidden" id="output5"></div>
+      </div>
+      <div class="step hidden" id="step6">
+        <h2>Step 6: 修改Content.json</h2>
+        <textarea
+          id="content.json"
+          class="form-control"
+          style="height: 200px"
+        ></textarea>
+
+        <button class="btn btn-primary mt-3" onclick="upload()">上传包</button>
+        <div class="output hidden" id="output6"></div>
+      </div>
+      <script>
+        oldVersion = {
+          local: "",
+          branch: "",
+          remote: "",
+          sha256: "",
+          package: "",
+          restore: "",
+          version: "",
+          AfterUpdate: "",
+          description: "",
+          BeforeUpdate: "",
+          dependencies: {},
+          updateInfo: "",
+        };
+        newVersion = oldVersion;
+        function showOutput(step, message, success = true) {
+          const output = document.getElementById(`output${step}`);
+          output.innerHTML = message;
+          output.className = `output ${
+            success ? "alert alert-success" : "alert alert-danger"
+          }`;
+          output.classList.remove("hidden");
+        }
+
+        function checkToken() {
+          const token = document.getElementById("token").value;
+          const url = `/checkToken?token=${token}`;
+          fetch(url)
+            .then((response) => {
+              return response.text();
+            })
+            .then((data) => {
+              if (data == "Success") {
+                showOutput(1, "Token正确");
+                document.getElementById("step2").classList.remove("hidden");
+              } else {
+                showOutput(1, "Token错误", false);
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+              showOutput(1, "检查Token时发生错误", false);
+            });
+        }
+
+        function getLatestVersion() {
+          const package = document.getElementById("package").value;
+          const branch = document.getElementById("branch").value;
+          const url_get_lastest =
+            "/latestVersion?package=" + package + "&branch=" + branch;
+          fetch(url_get_lastest)
+            .then((response) => response.text())
+            .then((data) => {
+              data = JSON.parse(data);
+              if (data["status"] == 200) {
+                content = JSON.parse(data["content.json"]);
+                oldVersion = content;
+                showOutput(2, "最新版本: " + content["version"]);
+                document.getElementById("step3").classList.remove("hidden");
+              } else if (data["status"] == 404) {
+                oldVersion["package"] = package;
+                oldVersion["branch"] = branch;
+                showOutput(2, "未找到该系列的包", false);
+                document.getElementById("step3").classList.remove("hidden");
+              } else {
+                showOutput(2, "获取最新版本时发生错误", false);
+              }
+            })
+            .catch((error) => showOutput(2, "获取最新版本时发生错误", false));
+        }
+
+        function checkNewVersion() {
+          const newVersion = document.getElementById("newVersion").value;
+          const checkNewVersionUrl =
+            "/getVersion?version=" +
+            newVersion +
+            "&package=" +
+            oldVersion["package"] +
+            "&branch=" +
+            oldVersion["branch"];
+          fetch(checkNewVersionUrl)
+            .then((response) => response.text())
+            .then((data) => {
+              data = JSON.parse(data);
+              if (data["status"] == 200 && data["list"].length == 0) {
+                showOutput(3, "该版本可用");
+                console.log(oldVersion);
+                document.getElementById("packname").value =
+                  oldVersion["package"];
+                document.getElementById("branchname").value =
+                  oldVersion["branch"];
+                document.getElementById("version").value = newVersion;
+                document.getElementById("remote").value = oldVersion["remote"];
+                document.getElementById("local").value = oldVersion["local"];
+                document.getElementById("updateInfo").value = "";
+                document.getElementById("description").value =
+                  oldVersion["description"];
+                document.getElementById("BeforeUpdate").value =
+                  oldVersion["BeforeUpdate"];
+                document.getElementById("AfterUpdate").value =
+                  oldVersion["AfterUpdate"];
+                document.getElementById("restore").value =
+                  oldVersion["restore"];
+                if (oldVersion["dependencies"] == undefined) {
+                  oldVersion["dependencies"] = {};
+                }
+                document.getElementById("dependencies").value = JSON.stringify(
+                  oldVersion["dependencies"]
+                );
+                document.getElementById("step4").classList.remove("hidden");
+              } else {
+                showOutput(3, "该版本已存在", false);
+              }
+            })
+            .catch((error) => showOutput(3, "检查版本信息时发生错误", false));
+        }
+        function generateNewVersion() {
+          newVersion["package"] = document.getElementById("packname").value;
+          newVersion["branch"] = document.getElementById("branchname").value;
+          newVersion["version"] = document.getElementById("version").value;
+          newVersion["remote"] = document.getElementById("remote").value;
+          newVersion["local"] = document.getElementById("local").value;
+          newVersion["updateInfo"] =
+            document.getElementById("updateInfo").value;
+          newVersion["description"] =
+            document.getElementById("description").value;
+          newVersion["BeforeUpdate"] =
+            document.getElementById("BeforeUpdate").value;
+          newVersion["AfterUpdate"] =
+            document.getElementById("AfterUpdate").value;
+          newVersion["restore"] = document.getElementById("restore").value;
+          newVersion["dependencies"] = JSON.parse(
+            document.getElementById("dependencies").value
+          );
+          showOutput(4, "Content.json已生成");
+          document.getElementById("step5").classList.remove("hidden");
+        }
+        function fileFetch() {
+          const file = document.getElementById("file").files[0];
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const data = new Uint8Array(e.target.result);
+            const wordArray = CryptoJS.lib.WordArray.create(data);
+            const sha256 = CryptoJS.SHA256(wordArray).toString();
+            newVersion["sha256"] = sha256;
+            showOutput(5, "文件SHA256: " + sha256);
+            document.getElementById("content.json").value = JSON.stringify(
+              newVersion,
+              null,
+              2
+            );
+            document.getElementById("step6").classList.remove("hidden");
+          };
+          reader.readAsArrayBuffer(file);
+        }
+        function upload() {
+          const content = document.getElementById("content.json").value;
+          const url = "/upload?overwrite=0";
+          const data = {
+            content: content,
+            file: document.getElementById("file").files[0],
+          };
+          const formData = new FormData();
+          formData.append("content", content);
+          formData.append("file", document.getElementById("file").files[0]);
+          fetch(url, {
+            method: "PUT",
+            body: formData,
+          })
+            .then((response) => response.text())
+            .then((data) => {
+              data = JSON.parse(data);
+              if (data["status"] == 200) {
+                showOutput(6, "上传成功");
+              } else {
+                showOutput(6, "上传失败:" + data["error"], false);
+              }
+            })
+            .catch((error) => {
+              console.log(error);
+              showOutput(6, "上传时遇到未知错误", false);
+            });
+        }
+      </script>
+    </div>
+  </body>
+</html>
