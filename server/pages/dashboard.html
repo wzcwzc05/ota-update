@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>控制台界面设计</title>
+    <link rel="stylesheet" href="static/dashboard.css" />
+  </head>
+  <body>
+    <div class="sidebar">
+      <div class="menu-item active">云端包</div>
+    </div>
+
+    <div class="content">
+      <div class="header">
+        <button>创建新包</button>
+      </div>
+      <div id="status-message" class="status-message"></div>
+      <div class="treeview" id="treeview">
+        <!-- 动态生成内容 -->
+      </div>
+      <div id="content-modal" class="modal">
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <pre id="full-content"></pre>
+        </div>
+      </div>
+    </div>
+
+    <script src="static/dashboard.js"></script>
+  </body>
+</html>

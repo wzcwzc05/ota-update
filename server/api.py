@@ -117,7 +117,8 @@ def ota_logout():
 @app.route("/dashboard")
 def dashboard():
     if ('username' in session):
-        return render_template("dashboard.html")
+        with open("pages/dashboard.html", "r", encoding="utf-8") as f:
+            return f.read()
     else:
         return redirect("/login")
 
