@@ -79,6 +79,8 @@ def libs(filename):
 
 @app.route('/manage')
 def ota_manage():
+    if ('username' not in session):
+        return redirect("/login")
     with open("pages/index.html", "r", encoding="utf-8") as f:
         return f.read()
 
@@ -106,6 +108,14 @@ def ota_admin():
                 'message': 'Invalid username or password'
             }
             return jsonify(response)
+
+
+@app.route("/")
+def ota_index():
+    if ('username' in session):
+        return redirect("/dashboard")
+    else:
+        return redirect("/login")
 
 
 @app.route('/logout')
@@ -148,7 +158,7 @@ def api_deletePackage():
     version = request.args.get("version")
     if package is None or branch is None or version is None:
         return jsonify({"status": 400, "error": "Missing parameters"})
-    if (vM.checkVersion(package, branch, version) == False):
+    if (vM.deletePackage(package, branch, version) == False):
         return jsonify({"status": 400, "error": "Database Error"})
     file_name = package+"-"+branch+"-"+version+".zip"
     file_path = os.path.join(storage_path, package, branch, file_name)

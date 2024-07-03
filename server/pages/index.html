@@ -48,22 +48,8 @@
     <div class="container">
       <h1 class="text-center">OTA云端包上传工具</h1>
 
-      <div class="step" id="step1">
-        <h2>Step 1: 输入服务器密钥</h2>
-        <input
-          type="text"
-          id="token"
-          class="form-control"
-          placeholder="Enter server Token"
-        />
-        <button class="btn btn-primary mt-3" onclick="checkToken()">
-          下一步
-        </button>
-        <div class="output hidden" id="output1"></div>
-      </div>
-
-      <div class="step hidden" id="step2">
-        <h2>Step 2: 输入包基本信息</h2>
+      <div class="step" id="step2">
+        <h2>Step 1: 输入包基本信息</h2>
         <input
           type="text"
           id="package"
@@ -83,7 +69,7 @@
       </div>
 
       <div class="step hidden" id="step3">
-        <h2>Step 3: 输入新版本信息</h2>
+        <h2>Step 2: 输入新版本信息</h2>
         <input
           type="text"
           id="newVersion"
@@ -97,7 +83,7 @@
       </div>
 
       <div class="step hidden" id="step4">
-        <h2>Step 4: 生成Content.json</h2>
+        <h2>Step 3: 生成Content.json</h2>
         <label for="packname">包名:</label>
         <input type="text" id="packname" class="form-control" />
         <label for="branchname">分支名:</label>
@@ -126,7 +112,7 @@
         <div class="output hidden" id="output4"></div>
       </div>
       <div class="step hidden" id="step5">
-        <h2>Step 5: 选择上传文件</h2>
+        <h2>Step 4: 选择上传文件</h2>
         <input type="file" id="file" class="form-control" />
         <button class="btn btn-primary mt-3" onclick="fileFetch()">
           下一步
@@ -134,7 +120,7 @@
         <div class="output hidden" id="output5"></div>
       </div>
       <div class="step hidden" id="step6">
-        <h2>Step 6: 修改Content.json</h2>
+        <h2>Step 5: 修改Content.json</h2>
         <textarea
           id="content.json"
           class="form-control"
@@ -167,27 +153,6 @@
             success ? "alert alert-success" : "alert alert-danger"
           }`;
           output.classList.remove("hidden");
-        }
-
-        function checkToken() {
-          const token = document.getElementById("token").value;
-          const url = `/checkToken?token=${token}`;
-          fetch(url)
-            .then((response) => {
-              return response.text();
-            })
-            .then((data) => {
-              if (data == "Success") {
-                showOutput(1, "Token正确");
-                document.getElementById("step2").classList.remove("hidden");
-              } else {
-                showOutput(1, "Token错误", false);
-              }
-            })
-            .catch((error) => {
-              console.log(error);
-              showOutput(1, "检查Token时发生错误", false);
-            });
         }
 
         function getLatestVersion() {
