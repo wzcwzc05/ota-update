@@ -103,43 +103,60 @@ def checkVersion(package: str, branch: str, version: str) -> bool:  # 检查版�
 
 
 def getAllPackageName() -> list:    # 获取所有包名
-    db= pymysql.connect(host=db_host,
-                         user = db_user,
-                         password = db_password,
-                         database = db_database,
-                         port = db_port)
-    cursor= db.cursor()
+    db = pymysql.connect(host=db_host,
+                         user=db_user,
+                         password=db_password,
+                         database=db_database,
+                         port=db_port)
+    cursor = db.cursor()
     cursor.execute("SELECT DISTINCT name FROM ota")
-    results= cursor.fetchall()
+    results = cursor.fetchall()
     db.close()
     return results
+
 
 def getPackageBranch(package: str) -> list:    # 获取指定包名的所有分支
-    db= pymysql.connect(host=db_host,
-                         user = db_user,
-                         password = db_password,
-                         database = db_database,
-                         port = db_port)
-    cursor= db.cursor()
+    db = pymysql.connect(host=db_host,
+                         user=db_user,
+                         password=db_password,
+                         database=db_database,
+                         port=db_port)
+    cursor = db.cursor()
     cursor.execute("SELECT DISTINCT branch FROM ota WHERE name='%s'" % package)
-    results= cursor.fetchall()
+    results = cursor.fetchall()
     db.close()
     return results
+
 
 def getPackageVersion(package: str, branch: str) -> list:    # 获取指定包名和分支的所有版本
-    db= pymysql.connect(host=db_host,
-                         user = db_user,
-                         password = db_password,
-                         database = db_database,
-                         port = db_port)
-    cursor= db.cursor()
+    db = pymysql.connect(host=db_host,
+                         user=db_user,
+                         password=db_password,
+                         database=db_database,
+                         port=db_port)
+    cursor = db.cursor()
     cursor.execute(
         "SELECT version FROM ota WHERE name='%s' AND branch='%s'" % (package, branch))
-    results= cursor.fetchall()
+    results = cursor.fetchall()
     db.close()
     return results
 
-if __name__ =="__main__":
+
+def deletePackage(package: str, branch: str, version: str) -> bool:
+    db = pymysql.connect(host=db_host,
+                         user=db_user,
+                         password=db_password,
+                         database=db_database,
+                         port=db_port)
+    cursor = db.cursor()
+    cursor.execute("DELETE FROM ota WHERE name='%s' AND branch='%s' AND version='%s'" % (
+        package, branch, version))
+    db.commit()
+    db.close()
+    return True
+
+
+if __name__ == "__main__":
     print(getAllPackageName())
     print(getPackageBranch("test"))
     print(getPackageVersion("test", "major"))

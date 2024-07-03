@@ -132,6 +132,30 @@ def checkToken():
         return "Failed"
 
 
+@app.route('/api/packages')
+def api_getPackageList():
+    if ('username' not in session):
+        return redirect("/login")
+    return jsonify(dh.api_getPackageList())
+
+
+@app.route("/api/deletePackage")
+def api_deletePackage():
+    if ('username' not in session):
+        return redirect("/login")
+    package = request.args.get("package")
+    branch = request.args.get("branch")
+    version = request.args.get("version")
+    if package is None or branch is None or version is None:
+        return jsonify({"status": 400, "error": "Missing parameters"})
+    if (vM.checkVersion(package, branch, version) == False):
+        return jsonify({"status": 400, "error": "Database Error"})
+    file_name = package+"-"+branch+"-"+version+".zip"
+    file_path = os.path.join(storage_path, package, branch, file_name)
+    os.remove(file_path)
+    return jsonify({"status": 200})
+
+
 @app.route('/upload', methods=['PUT'])
 def upload_file():  # 上传文件
     dic = {"status": 200}
