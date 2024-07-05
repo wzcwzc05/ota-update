@@ -1,8 +1,10 @@
-from flask import Flask, request, send_from_directory
+from flask import Flask, request, jsonify, render_template, session, redirect,  send_from_directory
+import mimetypes
 import json
 import logging
 import os
 import deviceManager as dM
+import dashboard as dh
 import time
 import multiprocessing
 
@@ -28,6 +30,9 @@ file_handler.setFormatter(formatter)
 console_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 logger.addHandler(console_handler)
+mimetypes.add_type('application/javascript', '.js')
+mimetypes.add_type('text/css', '.css')
+app.secret_key = os.urandom(24)
 
 
 def updateNext():   # 从队列中更新下一个设备
@@ -271,6 +276,45 @@ def PupdateNext():
     dic = {"status": 200}
     updateNext()
     return str(json.dumps(dic))
+
+
+@app.route('/login')
+def ota_admin():
+    username = request.args.get("username")
+    password = request.args.get("password")
+    if (username is None or password is None):
+        if ('username' in session):
+            return redirect("/dashboard")
+        else:
+            return render_template("login.html")
+    else:
+        if (dh.checkUserAndPasswd(username, password)):
+            session['username'] = username  # 将用户名存储在会话中
+            response = {
+                'status': 'success',
+                'message': f'Welcome, {username}!'
+            }
+            return jsonify(response)
+        else:
+            response = {
+                'status': 'failure',
+                'message': 'Invalid username or password'
+            }
+            return jsonify(response)
+
+
+@app.route("/dashboard")
+def dashboard():
+    if ('username' in session):
+        with open("pages/dashboard.html", "r", encoding="utf-8") as f:
+            return f.read()
+    else:
+        return redirect("/login")
+
+
+@app.route("/libs/<path:filename>")    # 通过路由参数来获取文件名
+def libs(filename):
+    return send_from_directory('libs', filename)
 
 
 if (__name__ == "__main__"):

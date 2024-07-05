@@ -14,28 +14,19 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+-- 导出  表 ota.users 结构
+CREATE TABLE IF NOT EXISTS `users` (
+  `uid` int NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL DEFAULT '0',
+  `password` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '',
+  PRIMARY KEY (`uid`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- 导出 registration 的数据库结构
-DROP DATABASE IF EXISTS `registration`;
-CREATE DATABASE IF NOT EXISTS `registration`;
-USE `registration`;
-
--- 导出  表 registration.devices 结构
-DROP TABLE IF EXISTS `devices`;
-CREATE TABLE IF NOT EXISTS `devices` (
-  `id` int unsigned NOT NULL AUTO_INCREMENT,
-  `device` varchar(50) NOT NULL,
-  `address` varchar(50) NOT NULL,
-  `content` json NOT NULL,
-  `status` json DEFAULT NULL,
-  `lastupdate` timestamp NOT NULL DEFAULT (now()),
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4;
-
--- 正在导出表  registration.devices 的数据：~1 rows (大约)
-DELETE FROM `devices`;
-INSERT INTO `devices` (`id`, `device`, `address`, `content`, `status`, `lastupdate`) VALUES
-	(1, 'test', '127.0.0.1:5000', '{}', '{}', '2024-03-09 13:34:25');
+-- 正在导出表  ota.users 的数据：~0 rows (大约)
+DELETE FROM `users`;
+INSERT INTO `users` (`uid`, `username`, `password`) VALUES
+	(1, 'admin', '123456'),
+	(2, 'wzcwzc0', 'wzcwzc050519');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

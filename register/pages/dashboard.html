@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>控制台界面设计</title>
+    <link rel="stylesheet" href="static/dashboard.css" />
+  </head>
+  <style>
+    .sidebar {
+      background-color: #2c3e50;
+      width: 200px;
+      height: 100vh;
+      padding: 20px 0;
+    }
+
+    .menu-item {
+      color: #ecf0f1;
+      padding: 10px 20px;
+      margin: 5px 0;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .menu-item:hover,
+    .menu-item.active {
+      background-color: #34495e;
+    }
+
+    /* 其他样式保持不变 */
+  </style>
+  <body>
+    <div class="sidebar">
+      <div class="menu-item active" data-page="device" id="device_page">
+        设备情况
+      </div>
+      <div class="menu-item" data-page="task" id="task_page">任务列表</div>
+      <div class="menu-item" data-page="log" id="log_page">日志查看</div>
+    </div>
+
+    <div class="content" id="content">
+      <div id="device" class="active">
+        <h1>设备列表页面</h1>
+        <div class="header">
+          <button onclick="window.location.href = '/new'">设备部署新包</button>
+        </div>
+        <div id="status-message" class="status-message"></div>
+        <div class="treeview" id="treeview">
+          <!-- 动态生成内容 -->
+        </div>
+        <div id="content-modal" class="modal">
+          <div class="modal-content">
+            <span class="close">&times;</span>
+            <pre id="full-content"></pre>
+          </div>
+        </div>
+      </div>
+      <div id="task" style="display: none">
+        <h1>任务列表</h1>
+      </div>
+      <div id="log" style="display: none">
+        <h1>日志查看</h1>
+      </div>
+    </div>
+
+    <script src="static/dashboard.js"></script>
+    <script>
+      last_page = "device";
+      document.querySelectorAll(".menu-item").forEach((item) => {
+        item.addEventListener("click", function () {
+          // 隐藏上一个页面
+          document.getElementById(last_page).style.display = "none";
+          // 移除上一个菜单项的active类
+          document
+            .getElementById(last_page + "_page")
+            .classList.remove("active");
+          // 获取当前点击的菜单项对应的页面
+          const page = this.getAttribute("data-page");
+          // 根据点击的菜单项显示对应的页面，并添加active类
+          document.getElementById(page).style.display = "block";
+          this.classList.add("active");
+          // 更新last_page为当前页面
+          last_page = page;
+        });
+      });
+    </script>
+  </body>
+</html>

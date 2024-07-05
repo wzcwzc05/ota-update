@@ -2,13 +2,13 @@
     "local": "/home/shx/ota/ota-server/server",
     "branch": "major",
     "remote": "http://192.168.1.203:5500",
-    "sha256": "449c1c05234243735d1782f2513ce7298a9f9e7ceb72e3dcb71db7b9943fa3af",
+    "sha256": "c3929d722580cf96835b071237b7c6575ad56bae900ff1fb2b3a746c273b38b3",
     "package": "ota-server",
     "restore": "",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "AfterUpdate": "systemctl restart ota-server",
-    "description": "1.0.2OTA\u4e91\u7aef\u670d\u52a1\u5668\u66f4\u65b0",
+    "description": "1.0.5OTA\u4e91\u7aef\u670d\u52a1\u5668\u66f4\u65b0",
     "BeforeUpdate": "",
     "dependencies": {},
-    "updateInfo": "OTA可视化包上传工具"
+    "updateInfo": "OTA\u53ef\u89c6\u5316\u5305\u4e0a\u4f20\u5de5\u5177"
 }
