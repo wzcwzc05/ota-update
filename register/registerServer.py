@@ -272,7 +272,7 @@ def cancelUpdate():
 
 
 @app.route("/updateNext", methods=["POST", "GET"])
-def PupdateNext():
+def updateNext():
     dic = {"status": 200}
     updateNext()
     return str(json.dumps(dic))
@@ -312,9 +312,17 @@ def dashboard():
         return redirect("/login")
 
 
-@app.route("/libs/<path:filename>")    # 通过路由参数来获取文件名
+@app.route("/libs/<path:filename>")
 def libs(filename):
     return send_from_directory('libs', filename)
+
+
+@app.route("/api/getDevices")
+def api_getDevices():
+    if ('username' in session):
+        return jsonify(dh.api_getDevices())
+    else:
+        return redirect("/login")
 
 
 if (__name__ == "__main__"):

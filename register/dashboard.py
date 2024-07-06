@@ -67,5 +67,16 @@ def api_getPackageList():
     return last_result
 
 
+def api_getDevices():
+    conn = pymysql.connect(host=db_host, user=db_user,
+                           password=db_password, database=db_database, port=db_port)
+    cursor = conn.cursor()
+    sql = "select id,device,content from devices"
+    result = cursor.execute(sql)
+    result = cursor.fetchall()
+    for device in result:
+        pass
+    return []
+
 if __name__ == "__main__":
     print(json.dumps(api_getPackageList()))

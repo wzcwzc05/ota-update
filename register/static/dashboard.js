@@ -40,62 +40,37 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function createTreeView(data) {
     treeview.innerHTML = "";
-    data.forEach((pkg) => {
+    data.forEach((device) => {
       const packageItem = document.createElement("div");
       packageItem.className = "treeview-item";
       const packageLabel = document.createElement("div");
       packageLabel.className = "treeview-item-label";
-      packageLabel.innerHTML = `<span class="arrow">&#9654;</span> ${pkg.name}`;
+      packageLabel.innerHTML = `<span class="arrow">&#9654;</span> id:${device.id} device:${device.device}`;
       packageLabel.onclick = () => toggleMenu(packageLabel);
       packageItem.appendChild(packageLabel);
 
-      const branchSubMenu = document.createElement("div");
-      branchSubMenu.className = "treeview-submenu";
-      branchSubMenu.style.display = "none"; // 默认隐藏
-      pkg.branches.forEach((branch) => {
-        const branchItem = document.createElement("div");
-        branchItem.className = "treeview-item";
-        const branchLabel = document.createElement("div");
-        branchLabel.className = "treeview-item-label";
-        branchLabel.innerHTML = `<span class="arrow">&#9654;</span> ${branch.name}`;
-        branchLabel.onclick = () => toggleMenu(branchLabel);
-        branchItem.appendChild(branchLabel);
-
-        const details = document.createElement("div");
-        details.className = "details";
-        details.style.display = "none"; // 默认隐藏
-        details.innerHTML = `
+      const details = document.createElement("div");
+      details.className = "details";
+      details.style.display = "none"; // 默认隐藏
+      details.innerHTML = `
                       <table class="details-table">
                           <thead>
                               <tr>
                                   <th>包名</th>
                                   <th>分支名</th>
                                   <th>版本</th>
-                                  <th>contentJson</th>
-                                  <th>操作</th>
+                                  <th>修改</th>
                               </tr>
                           </thead>
                           <tbody>
-                              ${branch.packages
+                              ${device.packages
                                 .map((packageDetail) => {
-                                  const truncatedContent = truncateContent(
-                                    packageDetail.contentJson,
-                                    30
-                                  );
                                   return `
                                       <tr>
                                           <td>${packageDetail.name}</td>
-                                          <td>${branch.name}</td>
+                                          <td>${packageDetail.branch}</td>
                                           <td>${packageDetail.version}</td>
-                                          <td>${truncatedContent} <button class="view-content-button" data-content='${packageDetail.contentJson.replace(
-                                    /'/g,
-                                    "&apos;"
-                                  )}'>查看</button></td>
-                                          <td><button onclick="deletePackage('${
-                                            packageDetail.name
-                                          }','${branch.name}','${
-                                    packageDetail.version
-                                  }')">删除</button></td>
+                                          <td><button onclick="revisePackage('${packageDetail.name}','${packageDetail.branch}','${packageDetail.version}','${device.id}')">修改</button></td>
                                       </tr>
                                   `;
                                 })
@@ -103,10 +78,7 @@ document.addEventListener("DOMContentLoaded", function () {
                           </tbody>
                       </table>
                   `;
-        branchItem.appendChild(details);
-        branchSubMenu.appendChild(branchItem);
-      });
-      packageItem.appendChild(branchSubMenu);
+      packageItem.appendChild(details);
       treeview.appendChild(packageItem);
     });
 
@@ -161,54 +133,37 @@ document.addEventListener("DOMContentLoaded", function () {
       statusMessage.textContent = "无法接通后端，显示演示数据。";
       const demoData = [
         {
-          name: "test",
-          branches: [
+          id: "1",
+          device: "test1",
+          packages: [
             {
-              name: "major",
-              packages: [
-                {
-                  id: "1",
-                  name: "test",
-                  version: "1.0.0",
-                  contentJson: '{"key":"value"}',
-                },
-                {
-                  id: "2",
-                  name: "test",
-                  version: "1.0.1",
-                  contentJson: '{"key":"value1"}',
-                },
-              ],
+              name: "hello",
+              branch: "major",
+              version: "1.0.0",
             },
             {
-              name: "minor",
-              packages: [
-                {
-                  id: "5",
-                  name: "test",
-                  version: "1.0.2",
-                  contentJson: '{"key":"value2"}',
-                },
-              ],
+              name: "test",
+              branch: "major",
+              version: "1.0.0",
             },
           ],
         },
         {
-          name: "hello",
-          branches: [
+          id: "2",
+          device: "test2",
+          packages: [
             {
-              name: "major",
-              packages: [
-                {
-                  id: "2",
-                  name: "hello",
-                  version: "1.0.0",
-                  contentJson: '{"key":"value"}',
-                },
-              ],
+              name: "hello",
+              branch: "major",
+              version: "1.0.0",
+            },
+            {
+              name: "test",
+              branch: "major",
+              version: "1.0.0",
             },
           ],
-        },
+        }
       ];
       createTreeView(demoData);
     }

@@ -27,10 +27,21 @@
       background-color: #34495e;
     }
 
-    /* 其他样式保持不变 */
+    .page-title {
+      font-family: "Arial", sans-serif; /* 设置字体 */
+      font-size: 24px; /* 字体大小 */
+      color: #34495e; /* 字体颜色 */
+      text-align: center; /* 文本居中 */
+      margin-top: 20px; /* 顶部外边距 */
+      padding: 10px; /* 内边距 */
+      border-radius: 8px; /* 圆角边框 */
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 盒子阴影 */
+      transition: transform 0.3s ease; /* 变换效果的过渡 */
+    }
   </style>
   <body>
     <div class="sidebar">
+      <div class="page-title" style="color: #ecf0f1;">注册服务</div>
       <div class="menu-item active" data-page="device" id="device_page">
         设备情况
       </div>
@@ -40,7 +51,7 @@
 
     <div class="content" id="content">
       <div id="device" class="active">
-        <h1>设备列表页面</h1>
+        <h1 class="page-title">设备列表页面</h1>
         <div class="header">
           <button onclick="window.location.href = '/new'">设备部署新包</button>
         </div>
@@ -56,10 +67,10 @@
         </div>
       </div>
       <div id="task" style="display: none">
-        <h1>任务列表</h1>
+        <h1 class="page-title">任务列表</h1>
       </div>
       <div id="log" style="display: none">
-        <h1>日志查看</h1>
+        <h1 class="page-title">日志查看</h1>
       </div>
     </div>
 
