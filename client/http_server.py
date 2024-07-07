@@ -13,7 +13,8 @@ import socket
 
 app = Flask(__name__)
 logger = logging.getLogger('http_server')
-log_name = time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())+"-http.log" # 日志文件名
+log_name = time.strftime(
+    "%Y-%m-%d-%H-%M-%S", time.localtime())+"-http.log"  # 日志文件名
 os.mkdir("log") if not os.path.exists("log") else None  # 创建log文件夹
 logger.setLevel(logging.INFO)
 file_log = logging.FileHandler(os.path.join("log", log_name))   # 文件输出
@@ -21,7 +22,7 @@ console_log = logging.StreamHandler()   # 控制台输出
 file_log.setLevel(logging.INFO)
 console_log.setLevel(logging.INFO)
 formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s') # 日志格式
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')  # 日志格式
 file_log.setFormatter(formatter)
 console_log.setFormatter(formatter)
 logger.addHandler(file_log)
@@ -33,7 +34,7 @@ def signal_handler(sig, frame):
     sys.exit(0)
 
 
-def get_local_ip(): # 获取本地ip
+def get_local_ip():  # 获取本地ip
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(("8.8.8.8", 80))
@@ -89,15 +90,17 @@ def startUpdate():  # 开始更新
             return str(json.dumps(res))
         dic = json.loads(request.form.get("content"))   # 获取包的content.json
         dic = json.loads(dic)
+        logger.info("Package:%s Branch:%s Version:%s Start Update" % (
+            str(dic["package"]), str(dic["branch"]), str(dic["version"])))
         if (not checkContent(dic)):  # 检查content.json是否合法
             logger.error("Error Json Content")
             res["status"] = 400
             res["error"] = "Error Json Content"
             return str(json.dumps(res))
-        t = update_package(dic, register_path, device_id, None) # 创建更新包
+        t = update_package(dic, register_path, device_id, None)  # 创建更新包
         updateQueue.put(t)  # 加入队列
         logger.info("Package:%s Branch:%s Version:%s Added into the Queue" % (
-            str(dic["package"]), str(dic["branch"]), str(dic["version"]))) 
+            str(dic["package"]), str(dic["branch"]), str(dic["version"])))
         return str(json.dumps(res))
     except Exception as e:
         logger.error(e)
@@ -141,7 +144,8 @@ def http_server(update_queue: Queue):   # http服务器
             time.sleep(2)
     updateQueue = update_queue
     global process
-    process = Process(target=heartbeat, args=(register_path, device_id))    # 心跳进程
+    process = Process(target=heartbeat, args=(
+        register_path, device_id))    # 心跳进程
     process.daemon = True
     process.start()
     app.logger.addHandler(file_log)

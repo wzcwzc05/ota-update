@@ -173,7 +173,7 @@ def getUpdatelist():
         dic["progress"] = (totallength - len(dM.updateList))/totallength*100
     else:
         dic["progress"] = 0
-    return str(json.dumps(dic))
+    return json.dumps(dic)
 
 
 @app.route("/delFromlist", methods=["POST", "GET"])
@@ -325,15 +325,6 @@ def libs(filename):
 def api_getDevices():
     if ('username' in session):
         return jsonify(dh.api_getDevices())
-    else:
-        return redirect("/login")
-
-
-@app.route("/new")
-def new():
-    if ('username' in session):
-        with open("pages/new.html", "r", encoding="utf-8") as f:
-            return f.read()
     else:
         return redirect("/login")
 

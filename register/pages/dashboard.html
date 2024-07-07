@@ -93,6 +93,60 @@
     .modal-content button:hover {
       background-color: #45a049;
     }
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #ecf0f1;
+      color: #2c3e50;
+    }
+    .header,
+    .task-header,
+    .log-header {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    .task-table th,
+    .task-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    .task-table th {
+      background-color: #34495e;
+      color: white;
+    }
+    .task-table tbody tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+    .task-table tbody tr:hover {
+      background-color: #ddd;
+    }
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+      resize: none;
+    }
     .sidebar {
       background-color: #2c3e50;
       width: 200px;
@@ -142,9 +196,7 @@
           <button id="deploy-button">设备部署新包</button>
         </div>
         <div id="status-message" class="status-message"></div>
-        <div class="treeview" id="treeview">
-          <!-- 动态生成内容 -->
-        </div>
+        <div class="treeview" id="treeview"></div>
         <div id="deploy-modal" class="modal">
           <div class="modal-content">
             <span class="close" id="close-deploy-modal">&times;</span>
@@ -152,9 +204,7 @@
             <form id="deploy-form">
               <input type="hidden" id="operation-type" value="deploy" />
               <label for="device-id">设备ID:</label>
-              <select id="device-id" required>
-                <!-- 动态生成设备ID选项 -->
-              </select>
+              <select id="device-id" required></select>
               <label for="package-name">包名称:</label>
               <input
                 type="text"
@@ -180,32 +230,97 @@
       </div>
       <div id="task" style="display: none">
         <h1 class="page-title">任务列表</h1>
+        <button id="refresh-task-button">刷新任务列表</button>
+        <table id="task-table" class="task-table">
+          <thead>
+            <tr>
+              <th>任务ID</th>
+              <th>设备ID</th>
+              <th>包名</th>
+              <th>分支</th>
+              <th>版本号</th>
+              <th>状态</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 动态生成内容 -->
+          </tbody>
+        </table>
       </div>
       <div id="log" style="display: none">
         <h1 class="page-title">日志查看</h1>
+        <button id="refresh-log-button">刷新日志</button>
+        <textarea id="log-textarea" rows="20" cols="80"></textarea>
       </div>
     </div>
 
     <script src="static/dashboard.js"></script>
     <script>
-      last_page = "device";
+      let last_page = "device";
       document.querySelectorAll(".menu-item").forEach((item) => {
         item.addEventListener("click", function () {
-          // 隐藏上一个页面
           document.getElementById(last_page).style.display = "none";
-          // 移除上一个菜单项的active类
           document
             .getElementById(last_page + "_page")
             .classList.remove("active");
-          // 获取当前点击的菜单项对应的页面
           const page = this.getAttribute("data-page");
-          // 根据点击的菜单项显示对应的页面，并添加active类
           document.getElementById(page).style.display = "block";
           this.classList.add("active");
-          // 更新last_page为当前页面
           last_page = page;
         });
       });
+
+      async function fetchTasks() {
+        const taskTableBody = document
+          .getElementById("task-table")
+          .getElementsByTagName("tbody")[0];
+        taskTableBody.innerHTML = "";
+        respose = await fetch("/getStatus");
+        const now_tasks = await respose.json();
+        console.log(now_tasks);
+        const row = taskTableBody.insertRow();
+        row.insertCell(0).innerText = 0;
+        row.insertCell(1).innerText = now_tasks.update.device;
+        row.insertCell(2).innerText = now_tasks.update.package.package;
+        row.insertCell(3).innerText = now_tasks.update.package.branch;
+        row.insertCell(4).innerText = now_tasks.update.package.version;
+        row.insertCell(5).innerText = now_tasks.update.status;
+
+        response = await fetch("/getUpdatelist");
+        const tasks = await response.json();
+        task_id = 1;
+        console.log(tasks);
+        tasks_list = tasks["list"];
+        tasks_list.forEach((task) => {
+          const row = taskTableBody.insertRow();
+          row.insertCell(0).innerText = task_id++;
+          row.insertCell(1).innerText = task.id;
+          row.insertCell(2).innerText = task.package;
+          row.insertCell(3).innerText = task.branch;
+          row.insertCell(4).innerText = task.version;
+          row.insertCell(5).innerText = "Waiting";
+        });
+      }
+
+      async function fetchLogs() {
+        const response = await fetch("/getLog");
+        const logs = await response.text();
+        document.getElementById("log-textarea").value = logs;
+      }
+
+      document
+        .getElementById("refresh-task-button")
+        .addEventListener("click", fetchTasks);
+      document
+        .getElementById("refresh-log-button")
+        .addEventListener("click", fetchLogs);
+
+      setInterval(fetchTasks, 3000);
+      setInterval(fetchLogs, 3000);
+
+      // Initial load
+      fetchTasks();
+      fetchLogs();
     </script>
   </body>
 </html>

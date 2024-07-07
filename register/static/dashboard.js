@@ -30,8 +30,25 @@ document.addEventListener("DOMContentLoaded", function () {
         alert("无法获取设备列表");
       });
   }
+  function revisePackage(name, branch, version, id) {
+    document.getElementById("device-id").value = id;
+    document.getElementById("package-name").value = name;
+    document.getElementById("branch-name").value = branch;
+    document.getElementById("version").value = version;
+    document.getElementById("device-id").disable = true;
+    document.getElementById("package-name").readOnly = true;
+    document.getElementById("branch-name").readOnly = true;
+    document.getElementById("version").readOnly = false;
+    modalTitle.textContent = "修改包";
+    operationType.value = "修改";
+    fetchDevicesForModal();
+    deployModal.style.display = "block";
+  }
   deploybutton.addEventListener("click", function () {
     document.getElementById("device-id").disable = false;
+    document.getElementById("package-name").textContent = "";
+    document.getElementById("branch-name").textContent = "";
+    document.getElementById("version").textContent = "";
     document.getElementById("package-name").readOnly = false;
     document.getElementById("branch-name").readOnly = false;
     document.getElementById("version").readOnly = false;
@@ -59,24 +76,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     submitPackageUpdate(deviceId, packageName, branchName, version);
   });
-  function submitPackageUpdate(deviceId, packageName, branchName, version) {
-    const url = `/api/updatePackage?device=${deviceId}&package=${packageName}&branch=${branchName}&version=${version}`;
-    fetch(url)
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.status === 200) {
-          alert("已加入升级队列");
-          deployModal.style.display = "none";
-          window.location.reload();
-        } else {
-          alert("加入升级队列失败");
-        }
-      })
-      .catch((error) => {
-        console.error("Error updating package:", error);
-        alert("加入升级队列失败");
-      });
-  }
   function toggleMenu(element) {
     const submenu = element.nextElementSibling;
     const arrow = element.querySelector(".arrow");
@@ -87,12 +86,6 @@ document.addEventListener("DOMContentLoaded", function () {
       submenu.style.display = "block";
       arrow.classList.add("down");
     }
-  }
-
-  function truncateContent(content, length = 30) {
-    return content.length > length
-      ? content.substring(0, length) + "..."
-      : content;
   }
 
   function createTreeView(data) {
@@ -232,33 +225,59 @@ document.addEventListener("DOMContentLoaded", function () {
   // 初始化加载数据
   fetchDevices();
 });
-function deletePackage(name, branch, version) {
-  // 弹窗是否确认删除
-  if (confirm(`确认删除包 ${name} ${branch} ${version} 吗？`)) {
-    // 确认删除
-    console.log(`删除包 ${name} ${branch} ${version}`);
-    url =
-      "/api/deletePackage?package=" +
-      name +
-      "&branch=" +
-      branch +
-      "&version=" +
-      version;
-    fetch(url)
-      .then((response) => response.json())
-      .then((data) => {
-        res = data;
-        if (res["status"] == 200) {
-          alert("删除成功");
-          window.location.reload();
-        } else {
-          alert("删除失败");
-        }
-      })
-      .catch((error) => {
-        console.error("Error deleting package:", error);
-        alert("删除失败");
+function fetchDevicesForModal() {
+  fetch("/api/getDevices")
+    .then((response) => response.json())
+    .then((data) => {
+      const deviceSelect = document.getElementById("device-id");
+      deviceSelect.innerHTML = "";
+      data.forEach((device) => {
+        const option = document.createElement("option");
+        option.value = device.id;
+        option.textContent = `ID: ${device.id} - Device: ${device.device}`;
+        deviceSelect.appendChild(option);
       });
-  }
-  // 请求后端删除包的API
+    })
+    .catch((error) => {
+      console.error("Error fetching devices:", error);
+      alert("无法获取设备列表");
+    });
+}
+function revisePackage(name, branch, version, id) {
+  document.getElementById("device-id").value = id;
+  document.getElementById("package-name").value = name;
+  document.getElementById("branch-name").value = branch;
+  document.getElementById("version").value = "";
+  document.getElementById("device-id").disable = true;
+  document.getElementById("package-name").readOnly = true;
+  document.getElementById("branch-name").readOnly = true;
+  document.getElementById("version").readOnly = false;
+  const deployModal = document.getElementById("deploy-modal");
+  const modalTitle = document.getElementById("modal-title");
+  const operationType = document.getElementById("operation-type");
+
+  modalTitle.textContent = "修改包";
+  operationType.value = "修改";
+  fetchDevicesForModal();
+  deployModal.style.display = "block";
+}
+function submitPackageUpdate(deviceId, packageName, branchName, version) {
+  const deployModal = document.getElementById("deploy-modal");
+  const url = `/api/updatePackage?device=${deviceId}&package=${packageName}&branch=${branchName}&version=${version}`;
+  fetch(url)
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("Package updated:", data);
+      if (data.status === 200) {
+        alert("已加入升级队列");
+        deployModal.style.display = "none";
+        window.location.reload();
+      } else {
+        alert("加入升级队列失败");
+      }
+    })
+    .catch((error) => {
+      console.error("Error updating package:", error);
+      alert("加入升级队列失败");
+    });
 }
