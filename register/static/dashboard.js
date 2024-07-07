@@ -1,10 +1,82 @@
 document.addEventListener("DOMContentLoaded", function () {
+  const deploybutton = document.getElementById("deploy-button");
+  const deployModal = document.getElementById("deploy-modal");
+  const closeDeployModal = document.getElementById("close-deploy-modal");
+  const deployForm = document.getElementById("deploy-form");
+  const modalTitle = document.getElementById("modal-title");
+  const operationType = document.getElementById("operation-type");
+  let currentDeviceId = null;
+
   const treeview = document.getElementById("treeview");
   const statusMessage = document.getElementById("status-message");
   const modal = document.getElementById("content-modal");
   const modalContent = document.getElementById("full-content");
   const closeModal = document.getElementsByClassName("close")[0];
+  function fetchDevicesForModal() {
+    fetch("/api/getDevices")
+      .then((response) => response.json())
+      .then((data) => {
+        const deviceSelect = document.getElementById("device-id");
+        deviceSelect.innerHTML = "";
+        data.forEach((device) => {
+          const option = document.createElement("option");
+          option.value = device.id;
+          option.textContent = `ID: ${device.id} - Device: ${device.device}`;
+          deviceSelect.appendChild(option);
+        });
+      })
+      .catch((error) => {
+        console.error("Error fetching devices:", error);
+        alert("无法获取设备列表");
+      });
+  }
+  deploybutton.addEventListener("click", function () {
+    document.getElementById("device-id").disable = false;
+    document.getElementById("package-name").readOnly = false;
+    document.getElementById("branch-name").readOnly = false;
+    document.getElementById("version").readOnly = false;
+    modalTitle.textContent = "部署新包";
+    operationType.value = "部署";
+    fetchDevicesForModal();
+    deployModal.style.display = "block";
+  });
 
+  closeDeployModal.onclick = function () {
+    deployModal.style.display = "none";
+  };
+
+  window.onclick = function (event) {
+    if (event.target === deployModal) {
+      deployModal.style.display = "none";
+    }
+  };
+  deployForm.addEventListener("submit", function (event) {
+    event.preventDefault();
+    const deviceId = document.getElementById("device-id").value;
+    const packageName = document.getElementById("package-name").value;
+    const branchName = document.getElementById("branch-name").value;
+    const version = document.getElementById("version").value;
+
+    submitPackageUpdate(deviceId, packageName, branchName, version);
+  });
+  function submitPackageUpdate(deviceId, packageName, branchName, version) {
+    const url = `/api/updatePackage?device=${deviceId}&package=${packageName}&branch=${branchName}&version=${version}`;
+    fetch(url)
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === 200) {
+          alert("已加入升级队列");
+          deployModal.style.display = "none";
+          window.location.reload();
+        } else {
+          alert("加入升级队列失败");
+        }
+      })
+      .catch((error) => {
+        console.error("Error updating package:", error);
+        alert("加入升级队列失败");
+      });
+  }
   function toggleMenu(element) {
     const submenu = element.nextElementSibling;
     const arrow = element.querySelector(".arrow");
@@ -22,21 +94,6 @@ document.addEventListener("DOMContentLoaded", function () {
       ? content.substring(0, length) + "..."
       : content;
   }
-
-  function showModal(content) {
-    modalContent.textContent = content;
-    modal.style.display = "block";
-  }
-
-  closeModal.onclick = function () {
-    modal.style.display = "none";
-  };
-
-  window.onclick = function (event) {
-    if (event.target === modal) {
-      modal.style.display = "none";
-    }
-  };
 
   function createTreeView(data) {
     treeview.innerHTML = "";
@@ -120,15 +177,15 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  async function fetchPackages() {
+  async function fetchDevices() {
     try {
-      const response = await fetch("/api/packages");
+      const response = await fetch("/api/getDevices");
       if (!response.ok) throw new Error("Network response was not ok");
       const data = await response.json();
       statusMessage.style.display = "none";
       createTreeView(data);
     } catch (error) {
-      console.error("Error fetching packages:", error);
+      console.error("Error fetching devices:", error);
       statusMessage.style.display = "block";
       statusMessage.textContent = "无法接通后端，显示演示数据。";
       const demoData = [
@@ -163,7 +220,7 @@ document.addEventListener("DOMContentLoaded", function () {
               version: "1.0.0",
             },
           ],
-        }
+        },
       ];
       createTreeView(demoData);
     }
@@ -173,7 +230,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // setInterval(fetchPackages, 1000);
 
   // 初始化加载数据
-  fetchPackages();
+  fetchDevices();
 });
 function deletePackage(name, branch, version) {
   // 弹窗是否确认删除

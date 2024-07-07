@@ -15,6 +15,7 @@ global updateList
 updateStatus = {"device": 0, "package": {"package": "0",
                                          "version": "0", "branch": "0"}, "status": "complete"}  # 更新状态
 updateList = []  # 更新队列
+isUpdating = False
 
 
 def getPackages(content: dict) -> list:  # 解析device.json,输出包列表
@@ -141,7 +142,7 @@ def updateByDeviceId(deviceid: int):
             if (data["status"] == 200):
                 # print("!!!")
                 cursor.execute("UPDATE devices SET content='%s' WHERE address='%s'" % (
-                    data["content"], address))          
+                    data["content"], address))
                 db.commit()
                 # print(data["content"])
                 db.close()

@@ -15,6 +15,7 @@ flask_host = config["flask"]["host"]
 flask_port = int(config["flask"]["port"])
 isDebug = bool(config["flask"]["debug"])
 log_path = "log/"
+global totallength
 totallength = 0
 app = Flask(__name__)
 
@@ -33,10 +34,12 @@ logger.addHandler(console_handler)
 mimetypes.add_type('application/javascript', '.js')
 mimetypes.add_type('text/css', '.css')
 app.secret_key = os.urandom(24)
+dM.isUpdating = False
 
 
 def updateNext():   # 从队列中更新下一个设备
     if (len(dM.updateList) > 0):
+        dM.isUpdating = True
         updatePackage = dM.updateList[0]
         status = dM.update(updatePackage)   # 更新设备
         if (not status):    # 更新失败
@@ -53,6 +56,7 @@ def updateNext():   # 从队列中更新下一个设备
         dM.updateFromDevice()
         info = "All Update Complete"
         logger.info(info)
+        dM.isUpdating = False
         dM.updateStatus = {"device": 0, "package": {"package": "0",
                                                     "version": "0", "branch": "0"}, "status": "complete"}
 
@@ -231,7 +235,7 @@ def update():
             for pack in packlist:
                 dM.updateList.append(
                     {"id": device_id, "package": pack["package"], "branch": pack["branch"], "version": pack["version"]})
-        if (isEmpty):
+        if (dM.isUpdating == False):
             updateNext()
         totallength = len(dM.updateList)
         return str(json.dumps(dic))
@@ -272,7 +276,7 @@ def cancelUpdate():
 
 
 @app.route("/updateNext", methods=["POST", "GET"])
-def updateNext():
+def RupdateNext():
     dic = {"status": 200}
     updateNext()
     return str(json.dumps(dic))
@@ -323,6 +327,43 @@ def api_getDevices():
         return jsonify(dh.api_getDevices())
     else:
         return redirect("/login")
+
+
+@app.route("/new")
+def new():
+    if ('username' in session):
+        with open("pages/new.html", "r", encoding="utf-8") as f:
+            return f.read()
+    else:
+        return redirect("/login")
+
+
+@app.route("/api/getOtaAddress")
+def api_getOtaAddress():
+    if ('username' in session):
+        return jsonify({"ota-server": dh.api_getOtaAddress()})
+    else:
+        return redirect("/login")
+
+
+@app.route("/api/updatePackage")
+def api_updatePackage():
+    if not ('username' in session):
+        return redirect("/login")
+    device_id = request.args.get("device")
+    package = request.args.get("package")
+    branch = request.args.get("branch")
+    version = request.args.get("version")
+    if package is None or branch is None or version is None or device_id is None:
+        return jsonify({"status": 400, "error": "Bad Request"})
+    if package == "" or branch == "" or version == "" or device_id == "":
+        return jsonify({"status": 400, "error": "Bad Request"})
+    dM.updateList.append(
+        {"id": device_id, "package": package, "branch": branch, "version": version})
+    if (dM.isUpdating == False):
+        updateNext()
+    totallength = len(dM.updateList)
+    return jsonify({"status": 200})
 
 
 if (__name__ == "__main__"):

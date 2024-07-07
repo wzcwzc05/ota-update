@@ -44,6 +44,7 @@ try:
     with open("start.sh", 'w', encoding="utf-8") as f:
         cmd_str = "#!/bin/sh\ncd %s && python3 daemon.py" % os.getcwd()
         f.write(cmd_str)
+    os.system("chmod +x start.sh")
     service_name = input("输入服务名称(default:ota-client):")
     if service_name == "":
         service_name = "ota-client"

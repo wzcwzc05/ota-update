@@ -3,10 +3,96 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>控制台界面设计</title>
+    <title>注册服务控制台</title>
     <link rel="stylesheet" href="static/dashboard.css" />
   </head>
   <style>
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgb(0, 0, 0);
+      background-color: rgba(0, 0, 0, 0.4);
+      padding-top: 60px;
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 5% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 500px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      animation: animatetop 0.4s;
+    }
+
+    @keyframes animatetop {
+      from {
+        top: -300px;
+        opacity: 0;
+      }
+      to {
+        top: 0;
+        opacity: 1;
+      }
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .modal-content h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-content label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    .modal-content input,
+    .modal-content select {
+      width: calc(100% - 22px);
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    .modal-content button {
+      width: 100%;
+      padding: 10px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .modal-content button:hover {
+      background-color: #45a049;
+    }
     .sidebar {
       background-color: #2c3e50;
       width: 200px;
@@ -41,7 +127,7 @@
   </style>
   <body>
     <div class="sidebar">
-      <div class="page-title" style="color: #ecf0f1;">注册服务</div>
+      <div class="page-title" style="color: #ecf0f1">注册服务</div>
       <div class="menu-item active" data-page="device" id="device_page">
         设备情况
       </div>
@@ -53,16 +139,42 @@
       <div id="device" class="active">
         <h1 class="page-title">设备列表页面</h1>
         <div class="header">
-          <button onclick="window.location.href = '/new'">设备部署新包</button>
+          <button id="deploy-button">设备部署新包</button>
         </div>
         <div id="status-message" class="status-message"></div>
         <div class="treeview" id="treeview">
           <!-- 动态生成内容 -->
         </div>
-        <div id="content-modal" class="modal">
+        <div id="deploy-modal" class="modal">
           <div class="modal-content">
-            <span class="close">&times;</span>
-            <pre id="full-content"></pre>
+            <span class="close" id="close-deploy-modal">&times;</span>
+            <h2 id="modal-title">部署新包</h2>
+            <form id="deploy-form">
+              <input type="hidden" id="operation-type" value="deploy" />
+              <label for="device-id">设备ID:</label>
+              <select id="device-id" required>
+                <!-- 动态生成设备ID选项 -->
+              </select>
+              <label for="package-name">包名称:</label>
+              <input
+                type="text"
+                id="package-name"
+                name="package-name"
+                required
+                readonly
+              />
+              <label for="branch-name">分支名称:</label>
+              <input
+                type="text"
+                id="branch-name"
+                name="branch-name"
+                required
+                readonly
+              />
+              <label for="version">版本号:</label>
+              <input type="text" id="version" name="version" required />
+              <button type="submit">确认</button>
+            </form>
           </div>
         </div>
       </div>

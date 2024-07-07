@@ -74,9 +74,29 @@ def api_getDevices():
     sql = "select id,device,content from devices"
     result = cursor.execute(sql)
     result = cursor.fetchall()
+    res_json = []
     for device in result:
-        pass
-    return []
+        device_json = {
+            "id": device[0],
+            "device": device[1],
+            "packages": []
+        }
+        device_content = json.loads(device[2])
+        for package in device_content["packages"]:
+            device_json["packages"].append({
+                "name": package["package"],
+                "branch": package["branch"],
+                "version": package["version"]
+            })
+        res_json.append(device_json)
+    return res_json
+
+
+def api_getOtaAddress():
+    with open("config.json", "r") as f:
+        config = json.loads(f.read())
+    return config["ota_server"]
+
 
 if __name__ == "__main__":
     print(json.dumps(api_getPackageList()))
