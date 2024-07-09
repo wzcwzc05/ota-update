@@ -122,6 +122,13 @@ def logout():
             return str(json.dumps(dic))
 
 
+@app.route("/logout_d", methods=["POST", "GET"])
+def logout_d():
+    if ('username' in session):
+        session.pop('username')
+    return redirect("/login")
+
+
 @app.route("/getAllInfo", methods=["POST", "GET"])
 def getAllInfo():
     dic = {"status": 200, "devices": []}
@@ -202,7 +209,6 @@ def updateInfo():
         updateNext()
     elif (update["status"] == "Completed"):
         time.sleep(2)
-        print(update["device"], dM.updateByDeviceId(update["device"]))
         info = "Device:%s Package:%s Branch:%s  Complete" % (
             update["device"], update["package"]["package"], update["package"]["branch"])
         logger.info(info)
@@ -355,6 +361,11 @@ def api_updatePackage():
         updateNext()
     totallength = len(dM.updateList)
     return jsonify({"status": 200})
+
+
+@app.route("/")
+def root():
+    return redirect("/dashboard")
 
 
 if (__name__ == "__main__"):

@@ -14,19 +14,18 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
--- 导出  表 ota.users 结构
+-- 导出  表 registration.users 结构
 CREATE TABLE IF NOT EXISTS `users` (
   `uid` int NOT NULL AUTO_INCREMENT,
-  `username` varchar(50) NOT NULL DEFAULT '0',
-  `password` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '',
+  `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `password` varchar(50) NOT NULL,
   PRIMARY KEY (`uid`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- 正在导出表  ota.users 的数据：~0 rows (大约)
+-- 正在导出表  registration.users 的数据：~0 rows (大约)
 DELETE FROM `users`;
 INSERT INTO `users` (`uid`, `username`, `password`) VALUES
-	(1, 'admin', '123456'),
-	(2, 'wzcwzc0', 'wzcwzc050519');
+	(1, 'admin', '123456');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

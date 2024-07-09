@@ -30,20 +30,6 @@ document.addEventListener("DOMContentLoaded", function () {
         alert("无法获取设备列表");
       });
   }
-  function revisePackage(name, branch, version, id) {
-    document.getElementById("device-id").value = id;
-    document.getElementById("package-name").value = name;
-    document.getElementById("branch-name").value = branch;
-    document.getElementById("version").value = version;
-    document.getElementById("device-id").disable = true;
-    document.getElementById("package-name").readOnly = true;
-    document.getElementById("branch-name").readOnly = true;
-    document.getElementById("version").readOnly = false;
-    modalTitle.textContent = "修改包";
-    operationType.value = "修改";
-    fetchDevicesForModal();
-    deployModal.style.display = "block";
-  }
   deploybutton.addEventListener("click", function () {
     document.getElementById("device-id").disable = false;
     document.getElementById("package-name").textContent = "";
@@ -225,7 +211,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // 初始化加载数据
   fetchDevices();
 });
-function fetchDevicesForModal() {
+async function fetchDevicesForModal() {
   fetch("/api/getDevices")
     .then((response) => response.json())
     .then((data) => {
@@ -237,18 +223,27 @@ function fetchDevicesForModal() {
         option.textContent = `ID: ${device.id} - Device: ${device.device}`;
         deviceSelect.appendChild(option);
       });
+      console.log(deviceSelect);
     })
     .catch((error) => {
       console.error("Error fetching devices:", error);
       alert("无法获取设备列表");
     });
 }
-function revisePackage(name, branch, version, id) {
-  document.getElementById("device-id").value = id;
+async function revisePackage(name, branch, version, id) {
+  all_devices = document.getElementById("device-id").options;
+  for (i = 0; i < all_devices.length; i++) {
+    console.log(all_devices[i].value, id);
+    if (all_devices[i].value == id) {
+      console.log("selected");
+      all_devices[i].selected = true;
+    } else {
+      all_devices[i].selected = false;
+    }
+  }
   document.getElementById("package-name").value = name;
   document.getElementById("branch-name").value = branch;
   document.getElementById("version").value = "";
-  document.getElementById("device-id").disable = true;
   document.getElementById("package-name").readOnly = true;
   document.getElementById("branch-name").readOnly = true;
   document.getElementById("version").readOnly = false;
@@ -258,8 +253,8 @@ function revisePackage(name, branch, version, id) {
 
   modalTitle.textContent = "修改包";
   operationType.value = "修改";
-  fetchDevicesForModal();
   deployModal.style.display = "block";
+  console.log(document.getElementById("device-id").selectedIndex);
 }
 function submitPackageUpdate(deviceId, packageName, branchName, version) {
   const deployModal = document.getElementById("deploy-modal");
@@ -281,3 +276,4 @@ function submitPackageUpdate(deviceId, packageName, branchName, version) {
       alert("加入升级队列失败");
     });
 }
+fetchDevicesForModal();
