@@ -166,3 +166,6 @@ test.json
 test.py
 .hintrc
 server/localstorage
+register/config.json
+server/config.json
+client/device.json

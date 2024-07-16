@@ -1,3 +1,4 @@
+import zipfile
 from flask import Flask, request, send_from_directory
 from multiprocessing import Process, Queue
 import json
@@ -10,23 +11,27 @@ from update_package import update_package
 import requests
 from urllib.parse import urljoin
 import socket
-
+import shutil
 app = Flask(__name__)
 logger = logging.getLogger('http_server')
-log_name = time.strftime(
-    "%Y-%m-%d-%H-%M-%S", time.localtime())+"-http.log"  # 日志文件名
-os.mkdir("log") if not os.path.exists("log") else None  # 创建log文件夹
-logger.setLevel(logging.INFO)
-file_log = logging.FileHandler(os.path.join("log", log_name))   # 文件输出
-console_log = logging.StreamHandler()   # 控制台输出
-file_log.setLevel(logging.INFO)
-console_log.setLevel(logging.INFO)
-formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')  # 日志格式
-file_log.setFormatter(formatter)
-console_log.setFormatter(formatter)
-logger.addHandler(file_log)
-logger.addHandler(console_log)
+
+
+def init_logging():
+    log_name = time.strftime(
+        "%Y-%m-%d-%H-%M-%S", time.localtime())+"-http.log"  # 日志文件名
+    os.mkdir("log") if not os.path.exists("log") else None  # 创建log文件夹
+    logger.setLevel(logging.INFO)
+    file_log = logging.FileHandler(os.path.join("log", log_name))   # 文件输出
+    console_log = logging.StreamHandler()   # 控制台输出
+    file_log.setLevel(logging.INFO)
+    console_log.setLevel(logging.INFO)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')  # 日志格式
+    file_log.setFormatter(formatter)
+    console_log.setFormatter(formatter)
+    logger.addHandler(file_log)
+    logger.addHandler(console_log)
+    return logger, file_log, console_log
 
 
 def signal_handler(sig, frame):
@@ -116,7 +121,70 @@ def getInfo():  # 获取设备device.json信息
     return str(json.dumps(res))
 
 
+@app.route("/deletePackage", methods=["POST", "GET"])
+def deletePackage():    # 删除包
+    device_id = request.args.get("device_id")
+    device_name = request.args.get("device_name")
+    package_name = request.args.get("package_name")
+    branch = request.args.get("branch")
+    version = request.args.get("version")
+    isDeleteFile = request.args.get("isDeleteFile")
+    res = {"status": 200}
+    if (device_id is None) or (device_name is None) or (package_name is None) or (branch is None) or (version is None) or (isDeleteFile is None):
+        res["status"] = 400
+        res["error"] = "Parameter Error"
+        return json.dumps(res)
+    with open("device.json", "r") as f:
+        config = json.loads(f.read())
+    try:
+        if (device_id != str(config["device_id"])):
+            res["status"] = 400
+            res["error"] = "Device ID Error"
+            return json.dumps(res)
+        if (device_name != config["device"]):
+            res["status"] = 400
+            res["error"] = "Device Name Error"
+            return json.dumps(res)
+        packages = config["packages"]
+        for package in packages:
+            if (package["package"] == package_name) and (package["branch"] == branch) and (package["version"] == version):
+                if (isDeleteFile == "True"):
+                    shutil.rmtree(package["local"], ignore_errors=True)
+                packages.remove(package)
+                break
+        else:
+            res["status"] = 404
+            res["error"] = "Package Not Found"
+            return json.dumps(res)
+        with open("device.json", "w") as f:
+            f.write(str(json.dumps(config)))
+        return json.dumps(res)
+    except Exception as e:
+        logger.error(e)
+        res["status"] = 400
+        res["error"] = "Delete Failed"
+        return json.dumps(res)
+
+
+@app.route("/selfUpdate", methods=["POST", "GET"])
+def selfUpdate():
+    res = {"status": 200}
+    file = request.files.get("file")
+    file_path = os.path.join("tmp", "ota-client.zip")
+    file.save(file_path)
+    logger.info("Self Update Start")
+    zipfile.ZipFile(file_path).extractall(os.getcwd())
+    os.remove(file_path)
+    logger.info("Self Update Success")
+    with open("device.json", "r") as f:
+        config = json.loads(f.read())
+        if (config["service"] != ""):
+            os.system("systemctl restart "+config["service"])
+    return json.dumps(res)
+
+
 def http_server(update_queue: Queue):   # http服务器
+    t, file_log, console_log = init_logging()
     with open("device.json", "r") as f:
         config = json.loads(f.read())
     flask_host = config["flask"]["host"]

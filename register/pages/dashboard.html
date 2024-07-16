@@ -194,6 +194,7 @@
         <h1 class="page-title">设备列表页面</h1>
         <div class="header">
           <button id="deploy-button">设备部署新包</button>
+          <button id="delete-button">删除已部署的包</button>
         </div>
         <div id="status-message" class="status-message"></div>
         <div class="treeview" id="treeview"></div>
@@ -224,6 +225,40 @@
               <label for="version">版本号:</label>
               <input type="text" id="version" name="version" required />
               <button type="submit">确认</button>
+            </form>
+          </div>
+        </div>
+        <div id="delete-modal" class="modal">
+          <div class="modal-content">
+            <span class="close" id="close-delete-modal">&times;</span>
+            <h2 id="d-modal-title">删除已部署的包</h2>
+            <form id="delete-form">
+              <label for="d-device-id">设备ID:</label>
+              <select id="d-device-id" required></select>
+              <label for="d-package-name">包名称:</label>
+              <input
+                type="text"
+                id="d-package-name"
+                name="package-name"
+                required
+                readonly
+              />
+              <label for="d-branch-name">分支名称:</label>
+              <input
+                type="text"
+                id="d-branch-name"
+                name="branch-name"
+                required
+                readonly
+              />
+              <label for="d-version">版本号:</label>
+              <input type="text" id="d-version" name="version" required />
+              <label for="is-delete">是否删除:</label>
+              <select id="is-delete" required>
+                <option value="false">否</option>
+                <option value="false">是</option>
+              </select>
+              <button type="d-submit">确认</button>
             </form>
           </div>
         </div>

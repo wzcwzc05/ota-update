@@ -1,7 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
   const deploybutton = document.getElementById("deploy-button");
+  const deletebutton = document.getElementById("delete-button");
   const deployModal = document.getElementById("deploy-modal");
+  const deleteModal = document.getElementById("delete-modal");
   const closeDeployModal = document.getElementById("close-deploy-modal");
+  const closeDeleteModal = document.getElementById("close-delete-modal");
   const deployForm = document.getElementById("deploy-form");
   const modalTitle = document.getElementById("modal-title");
   const operationType = document.getElementById("operation-type");
@@ -17,12 +20,18 @@ document.addEventListener("DOMContentLoaded", function () {
       .then((response) => response.json())
       .then((data) => {
         const deviceSelect = document.getElementById("device-id");
+        const d_deviceSelect = document.getElementById("d-device-id");
         deviceSelect.innerHTML = "";
+        d_deviceSelect.innerHTML = "";
         data.forEach((device) => {
           const option = document.createElement("option");
+          const d_option = document.createElement("option");
           option.value = device.id;
           option.textContent = `ID: ${device.id} - Device: ${device.device}`;
+          d_option.value = device.id;
+          d_option.textContent = `ID: ${device.id} - Device: ${device.device}`;
           deviceSelect.appendChild(option);
+          d_deviceSelect.appendChild(d_option);
         });
       })
       .catch((error) => {
@@ -43,14 +52,31 @@ document.addEventListener("DOMContentLoaded", function () {
     fetchDevicesForModal();
     deployModal.style.display = "block";
   });
-
+  deletebutton.addEventListener("click", function () {
+    document.getElementById("d-device-id").disable = false;
+    document.getElementById("d-package-name").readOnly = false;
+    document.getElementById("d-branch-name").readOnly = false;
+    document.getElementById("d-version").readOnly = false;
+    document.getElementById("d-package-name").textContent = "";
+    document.getElementById("d-branch-name").textContent = "";
+    document.getElementById("d-version").textContent = "";
+    fetchDevicesForModal();
+    deleteModal.style.display = "block";
+  });
   closeDeployModal.onclick = function () {
     deployModal.style.display = "none";
+    deleteModal.style.display = "none";
   };
-
+  closeDeleteModal.onclick = function () {
+    deployModal.style.display = "none";
+    deleteModal.style.display = "none";
+  };
   window.onclick = function (event) {
     if (event.target === deployModal) {
       deployModal.style.display = "none";
+    }
+    if (event.target === deleteModal) {
+      deleteModal.style.display = "none";
     }
   };
   deployForm.addEventListener("submit", function (event) {

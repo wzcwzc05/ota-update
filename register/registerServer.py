@@ -1,3 +1,4 @@
+from urllib import response
 from flask import Flask, request, jsonify, render_template, session, redirect,  send_from_directory
 import mimetypes
 import json
@@ -7,7 +8,7 @@ import deviceManager as dM
 import dashboard as dh
 import time
 import multiprocessing
-
+import requests
 config = {}
 with open("config.json", "r") as f:
     config = json.loads(f.read())
@@ -247,7 +248,44 @@ def update():
         return str(json.dumps(dic))
 
 
-@app.route("/getLog", methods=["POST", "GET"])
+@app.route("/deletePackage", methods=["POST", "GET"])
+def deletePackage():
+    content = json.loads(request.form.get("content"))
+    device_id = content["device_id"]
+    device_name = content["device_name"]
+    package_name = content["package_name"]
+    branch = content["branch"]
+    version = content["version"]
+    isDeleteFile = content["isDeleteFile"]
+    res = {"status": 200}
+    if (device_id is None) or (device_name is None) or (package_name is None) or (branch is None) or (version is None) or (isDeleteFile is None):
+        res["status"] = 400
+        res["error"] = "Parameter Error"
+        return json.dumps(res)
+    addr = dM.getAddress(device_id)
+    url = addr+"/deletePackage" + \
+        f"?device_id={device_id}&device_name={device_name}&package_name={package_name}&branch={branch}&version={version}"
+    if (isDeleteFile):
+        url = url+"&isDeleteFile=True"
+    else:
+        url = url+"&isDeleteFile=False"
+    try:
+        response = requests.post(url, timeout=3)
+        if (response.json()["status"] == 200):
+            res["status"] = 200
+            return json.dumps(res)
+        else:
+            error = response.json()["error"]
+            res["status"] = 400
+            res["error"] = error
+            return json.dumps(res)
+    except Exception as e:
+        logger.error(e)
+        res["status"] = 400
+        return json.dumps(res)
+
+
+@ app.route("/getLog", methods=["POST", "GET"])
 def getLog():
     with open(os.path.join(log_path, logfile_name), "r") as f:
         logs = f.read()
@@ -274,21 +312,21 @@ def getLog():
     return '\n'.join(latest_logs)
 
 
-@app.route("/cancelUpdate", methods=["POST", "GET"])
+@ app.route("/cancelUpdate", methods=["POST", "GET"])
 def cancelUpdate():
     dM.updateList = []
     dic = {"status": 200}
     return str(json.dumps(dic))
 
 
-@app.route("/updateNext", methods=["POST", "GET"])
+@ app.route("/updateNext", methods=["POST", "GET"])
 def RupdateNext():
     dic = {"status": 200}
     updateNext()
     return str(json.dumps(dic))
 
 
-@app.route('/login')
+@ app.route('/login')
 def ota_admin():
     username = request.args.get("username")
     password = request.args.get("password")
@@ -313,7 +351,7 @@ def ota_admin():
             return jsonify(response)
 
 
-@app.route("/dashboard")
+@ app.route("/dashboard")
 def dashboard():
     if ('username' in session):
         with open("pages/dashboard.html", "r", encoding="utf-8") as f:
@@ -322,12 +360,12 @@ def dashboard():
         return redirect("/login")
 
 
-@app.route("/libs/<path:filename>")
+@ app.route("/libs/<path:filename>")
 def libs(filename):
     return send_from_directory('libs', filename)
 
 
-@app.route("/api/getDevices")
+@ app.route("/api/getDevices")
 def api_getDevices():
     if ('username' in session):
         return jsonify(dh.api_getDevices())
@@ -335,7 +373,7 @@ def api_getDevices():
         return redirect("/login")
 
 
-@app.route("/api/getOtaAddress")
+@ app.route("/api/getOtaAddress")
 def api_getOtaAddress():
     if ('username' in session):
         return jsonify({"ota-server": dh.api_getOtaAddress()})
@@ -343,7 +381,7 @@ def api_getOtaAddress():
         return redirect("/login")
 
 
-@app.route("/api/updatePackage")
+@ app.route("/api/updatePackage")
 def api_updatePackage():
     if not ('username' in session):
         return redirect("/login")
@@ -363,7 +401,7 @@ def api_updatePackage():
     return jsonify({"status": 200})
 
 
-@app.route("/")
+@ app.route("/")
 def root():
     return redirect("/dashboard")
 
